@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Colorado Open Spaces</title>
+  <meta name="description" content="Colorado open spaces.">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Open Spaces</h1>
+    </header>
+    <section class="grid" id="grid" aria-label="Open Spaces"></section>
+  </main>
+
+  <script src="js/spaces.js"></script>
+  <script>
+    const grid = document.getElementById("grid");
+    const spaces = window.SPACES || [];
+
+    if (spaces.length === 0) {
+      const msg = document.createElement("p");
+      msg.className = "empty";
+      msg.innerHTML = "No spaces found.";
+      grid.replaceWith(msg);
+    }
+
+    for (const spc of spaces) {
+      const a = document.createElement("a");
+      a.className = "space";
+      a.href = spc.href;
+
+      if (spc.image) {
+        const img = document.createElement("img");
+        img.src = spc.image;
+        img.alt = "";
+        img.loading = "lazy";
+        a.appendChild(img);
+      } else {
+        const ph = document.createElement("div");
+        ph.className = "placeholder";
+        a.appendChild(ph);
+      }
+
+      const body = document.createElement("div");
+      body.className = "space-body";
+      const h2 = document.createElement("h2");
+      h2.textContent = spc.title;
+      body.appendChild(h2);
+      if (spc.description) {
+        const p = document.createElement("p");
+        p.textContent = spc.description;
+        body.appendChild(p);
+      }
+      a.appendChild(body);
+      grid.appendChild(a);
+    }
+  </script>
+</body>
+</html>
