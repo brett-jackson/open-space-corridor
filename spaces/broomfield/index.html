@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Broomfield Open Space</title>
   <meta name="description" content="Colorado open spaces.">
-  <link rel="stylesheet" href=".../../css/styles.css">
+  <link rel="stylesheet" href="../../css/styles.css">
 </head>
 <body>
   <main>
@@ -17,5 +17,63 @@
     </header>
     <section class="grid" id="grid" aria-label="Activity at Broomfield"></section>
   </main>
+  <script src="../../js/queries.js"></script>
+  <script src="constants.js"></script>
+  <script>
+    const resp_params = {
+        "species_guess" : true,
+        "user" : {
+            "login" : true
+        },
+        "observation_photos" : "all"
+    };
+    const params = {
+        "verifiable" : true,
+        "order_by" : "observed_on",
+        "order" : "desc",
+        "place_id" : PLACE_ID,
+    };
+    inat_request("observations",resp_params,params).then((json_obj) => {
+        const grid = document.getElementById("grid");
+
+        if (json_obj.results.length === 0) {
+            const msg = document.createElement("p");
+            msg.className = "empty";
+            msg.innerHTML = "No observations found.";
+            grid.replaceWith(msg);
+        }
+
+        for (const res of json_obj.results) {
+            const a = document.createElement("a");
+            a.className = "space";
+
+            if (res.observation_photos.length !== 0)
+            {
+                const img = document.createElement("img");
+                img.src = spc.image;
+                img.alt = "";
+                img.loading = "lazy";
+                a.appendChild(img);
+            } else {
+                const ph = document.createElement("div");
+                ph.className = "placeholder";
+                a.appendChild(ph);
+            }
+
+            const body = document.createElement("div");
+            body.className = "space-body";
+            const h2 = document.createElement("h2");
+            h2.textContent = spc.title;
+            body.appendChild(h2);
+            if (spc.description) {
+                const p = document.createElement("p");
+                p.textContent = spc.description;
+                body.appendChild(p);
+            }
+            a.appendChild(body);
+            grid.appendChild(a);
+        }
+    })
+  </script>
 </body>
 </html>
