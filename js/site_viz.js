@@ -19,7 +19,7 @@ const ROW_COUNT = 2;
 const GAP_AR = 0.03; // the gap between tiles, as a fraction of row height
 
 document.title = SPACE_NAME + " Open Space";
-document.getElementById("space-title").textContent = "Activity at " + SPACE_NAME;
+document.getElementById("space-title").textContent = SPACE_NAME;
 
 const grid = document.getElementById("grid");
 grid.setAttribute("aria-label", "Activity at " + SPACE_NAME);
