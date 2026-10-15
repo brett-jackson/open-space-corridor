@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Open Space</title>
+  <meta name="description" content="Colorado open spaces.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&display=swap">
+  <link rel="stylesheet" href="../../css/styles.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <a class="back" href="../../index.html">&larr; All open spaces</a>
+      <h1 class="space-name" id="space-title">Open Space</h1>
+      <p class="space-subtitle" id="space-subtitle"></p>
+      <nav class="section-nav" id="section-nav" aria-label="Sections"></nav>
+    </aside>
+    <main>
+      <section class="page-section" id="top-observers">
+        <h2>Top Observers</h2>
+        <div class="segmented" id="observer-metric" role="group" aria-label="Rank observers by">
+          <button type="button" data-metric="observations" aria-pressed="true">Observations</button>
+          <button type="button" data-metric="species" aria-pressed="false">Species</button>
+        </div>
+        <ol class="observers" id="observers"></ol>
+      </section>
+      <section class="page-section" id="recent-observations">
+        <h2>Recent Observations</h2>
+        <div class="carousel" id="carousel">
+          <button class="arrow" id="prev" aria-label="Newer observations" disabled>&#8249;</button>
+          <div class="mosaic" id="grid" role="region" aria-label="Activity"></div>
+          <button class="arrow" id="next" aria-label="Older observations" disabled>&#8250;</button>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="../../js/queries.js"></script>
+  <script src="constants.js"></script>
+  <script src="../../js/top_observers.js"></script>
+  <script src="../../js/site_viz.js"></script>
+  <script src="../../js/sections.js"></script>
+</body>
+</html>
