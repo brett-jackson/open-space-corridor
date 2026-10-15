@@ -18,8 +18,12 @@ const params = {
 const ROW_COUNT = 2;
 const GAP_AR = 0.03; // the gap between tiles, as a fraction of row height
 
-document.title = SPACE_NAME + " Open Space";
+document.title = SPACE_NAME;
 document.getElementById("space-title").textContent = SPACE_NAME;
+// SPACE_SUBTITLE is optional in a space's constants.js
+const subtitle = document.getElementById("space-subtitle");
+if (typeof SPACE_SUBTITLE !== "undefined" && SPACE_SUBTITLE) subtitle.textContent = SPACE_SUBTITLE;
+else subtitle.remove();
 
 const grid = document.getElementById("grid");
 grid.setAttribute("aria-label", "Activity at " + SPACE_NAME);
