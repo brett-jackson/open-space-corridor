@@ -12,7 +12,7 @@ const params = {
     "order_by" : "observed_on",
     "order" : "desc",
     "place_id" : PLACE_ID,
-    "per_page" : 30,
+    "per_page" : 80,
 };
 const ROW_COUNT = 3;
 const GAP_AR = 0.03; // the gap between tiles, as a fraction of row height
