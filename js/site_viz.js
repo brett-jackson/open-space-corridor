@@ -3,7 +3,8 @@ const resp_params = {
     "species_guess" : true,
     "observed_on" : true,
     "user" : {
-        "login" : true
+        "login" : true,
+        "icon_url" : true
     },
     "observation_photos" : "all"
 };
@@ -77,6 +78,21 @@ function makeTile(obs, ar) {
         .filter(Boolean).join(" · ");
     info.appendChild(p);
     a.appendChild(info);
+
+    // Observer avatar, always visible; users without a profile photo get their initial
+    const avatar = document.createElement("span");
+    avatar.className = "tile-avatar";
+    avatar.title = obs.user?.login || "";
+    if (obs.user?.icon_url) {
+        const icon = document.createElement("img");
+        icon.src = obs.user.icon_url;
+        icon.alt = "";
+        icon.loading = "lazy";
+        avatar.appendChild(icon);
+    } else {
+        avatar.textContent = (obs.user?.login || "?").charAt(0).toUpperCase();
+    }
+    a.appendChild(avatar);
     return a;
 }
 
