@@ -15,7 +15,7 @@ const params = {
     "place_id" : PLACE_ID,
     "per_page" : 80,
 };
-const ROW_COUNT = 3;
+const ROW_COUNT = 2;
 const GAP_AR = 0.03; // the gap between tiles, as a fraction of row height
 
 document.title = SPACE_NAME + " Open Space";
