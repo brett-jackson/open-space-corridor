@@ -12,7 +12,7 @@ const observer_params = {
     "per_page" : 3,
 };
 
-function makeObserver(result) {
+function makeObserver(result, index) {
     const user = result.user || {};
     const li = document.createElement("li");
     li.className = "observer";
@@ -27,13 +27,24 @@ function makeObserver(result) {
     avatar.className = "observer-avatar";
     if (user.icon_url) {
         const icon = document.createElement("img");
-        icon.src = user.icon_url;
+        // The API gives the medium (300px) icon; large (500px) stays sharp at this size
+        icon.src = user.icon_url.replace("/medium.", "/large.");
+        icon.onerror = () => { icon.onerror = null; icon.src = user.icon_url; };
         icon.alt = "";
         avatar.appendChild(icon);
     } else {
         avatar.textContent = (user.login || "?").charAt(0).toUpperCase();
     }
-    a.appendChild(avatar);
+    // Wrapper lets the medal overlap the avatar's edge, which clips its own contents
+    const avatar_wrap = document.createElement("span");
+    avatar_wrap.className = "observer-avatar-wrap";
+    avatar_wrap.appendChild(avatar);
+    const medal = document.createElement("span");
+    medal.className = "medal medal-" + (index + 1);
+    medal.textContent = index + 1;
+    medal.setAttribute("aria-hidden", "true"); // the <ol> already conveys rank
+    avatar_wrap.appendChild(medal);
+    a.appendChild(avatar_wrap);
 
     const name = document.createElement("span");
     name.className = "observer-name";
