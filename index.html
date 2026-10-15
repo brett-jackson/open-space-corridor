@@ -32,7 +32,7 @@
     for (const spc of spaces) {
       const a = document.createElement("a");
       a.className = "space";
-      a.href = spc.href;
+      a.href = "space.html?id=" + encodeURIComponent(spc.id);
 
       if (spc.image) {
         const img = document.createElement("img");

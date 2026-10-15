@@ -8,12 +8,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&display=swap">
-  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
   <div class="layout">
     <aside class="sidebar">
-      <a class="back" href="../../index.html">&larr; All open spaces</a>
+      <a class="back" href="index.html">&larr; All open spaces</a>
       <h1 class="space-name" id="space-title">Open Space</h1>
       <p class="space-subtitle" id="space-subtitle"></p>
       <nav class="section-nav" id="section-nav" aria-label="Sections"></nav>
@@ -55,12 +55,40 @@
       </section>
     </main>
   </div>
-  <script src="../../js/queries.js"></script>
-  <script src="constants.js"></script>
-  <script src="../../js/top_observers.js"></script>
-  <script src="../../js/site_viz.js"></script>
-  <script src="trends_cache.js"></script>
-  <script src="../../js/trends.js"></script>
-  <script src="../../js/sections.js"></script>
+  <script src="js/spaces.js"></script>
+  <script>
+    // Look up the space from ?id=…, expose its settings to the page scripts, then load them in order
+    const SPACE = (window.SPACES || []).find((spc) => spc.id === new URLSearchParams(location.search).get("id"));
+    const SPACE_NAME = SPACE?.title;
+    const SPACE_SUBTITLE = SPACE?.subtitle;
+    const PLACE_ID = SPACE?.place_id;
+
+    if (!SPACE) {
+      document.title = "Open space not found";
+      const msg = document.createElement("p");
+      msg.className = "empty";
+      msg.append("That open space wasn't found. ");
+      const link = document.createElement("a");
+      link.href = "index.html";
+      link.textContent = "See all open spaces";
+      msg.appendChild(link);
+      document.querySelector("main").replaceChildren(msg);
+      document.getElementById("space-title").textContent = "Not found";
+    } else {
+      [
+        "js/queries.js",
+        "js/top_observers.js",
+        "js/site_viz.js",
+        "spaces/" + SPACE.id + "/trends_cache.js", // optional; a missing cache just means more live requests
+        "js/trends.js",
+        "js/sections.js",
+      ].forEach((src) => {
+        const script = document.createElement("script");
+        script.src = src;
+        script.async = false; // run in the order listed
+        document.body.appendChild(script);
+      });
+    }
+  </script>
 </body>
 </html>

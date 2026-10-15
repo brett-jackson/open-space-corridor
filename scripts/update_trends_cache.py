@@ -26,7 +26,9 @@ from pathlib import Path
 API = "https://api.inaturalist.org/v2/"
 USER_AGENT = "open-space-corridor trends cache (iNaturalist user: brettjackson)"
 MIN_INTERVAL = 1.0  # iNaturalist asks for about 1 request per second
-SPACES_DIR = Path(__file__).resolve().parent.parent / "spaces"
+ROOT = Path(__file__).resolve().parent.parent
+SPACES_DIR = ROOT / "spaces"
+SPACES_JS = ROOT / "js" / "spaces.js"
 
 _last_request = 0.0
 
@@ -43,11 +45,12 @@ def inat(path, **params):
         return json.load(resp)
 
 
-def read_place_id(space_dir):
-    match = re.search(r"PLACE_ID\s*=\s*(\d+)", (space_dir / "constants.js").read_text())
+def read_spaces():
+    """The site's list of spaces from js/spaces.js, keyed by id."""
+    match = re.search(r"=\s*(\[.*\])\s*;?\s*$", SPACES_JS.read_text(), re.S)
     if not match:
-        raise ValueError(f"no PLACE_ID in {space_dir / 'constants.js'}")
-    return int(match.group(1))
+        raise ValueError(f"couldn't find the SPACES list in {SPACES_JS}")
+    return {spc["id"]: spc for spc in json.loads(match.group(1))}
 
 
 def read_cache(path):
@@ -65,8 +68,10 @@ def write_cache(path, cache):
     )
 
 
-def update_space(space_dir, full, refresh_years):
-    place_id = read_place_id(space_dir)
+def update_space(space, full, refresh_years):
+    place_id = space["place_id"]
+    space_dir = SPACES_DIR / space["id"]
+    space_dir.mkdir(exist_ok=True)
     cache_path = space_dir / "trends_cache.js"
     old = None if full else read_cache(cache_path)
     if old and old.get("place_id") != place_id:
@@ -116,16 +121,20 @@ def update_space(space_dir, full, refresh_years):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("spaces", nargs="*", help="space folder names (default: all)")
+    parser.add_argument("spaces", nargs="*", help="space ids from js/spaces.js (default: all)")
     parser.add_argument("--full", action="store_true", help="ignore existing caches and refetch every year")
     parser.add_argument("--refresh-years", type=int, default=1, help="re-fetch this many of the latest cached years (default 1)")
     args = parser.parse_args()
 
-    names = args.spaces or sorted(p.name for p in SPACES_DIR.iterdir() if (p / "constants.js").exists())
+    spaces = read_spaces()
+    names = args.spaces or list(spaces)
     for name in names:
         print(name)
+        if name not in spaces:
+            print(f"  not in {SPACES_JS.relative_to(ROOT)}; skipping", file=sys.stderr)
+            continue
         try:
-            update_space(SPACES_DIR / name, args.full, args.refresh_years)
+            update_space(spaces[name], args.full, args.refresh_years)
         except Exception as err:  # keep going so one bad space doesn't block the rest
             print(f"  failed: {err}", file=sys.stderr)
 
