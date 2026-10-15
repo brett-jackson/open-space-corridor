@@ -52,8 +52,7 @@ header p { margin: 0; color: var(--text-muted); font-size: 1.05rem; }
 code { background: var(--outline); padding: 2px 6px; border-radius: 4px; }
 
 .carousel { display: flex; align-items: center; gap: 12px; }
-.carousel .grid { flex: 1; min-width: 0; }
-.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.carousel .mosaic { flex: 1; min-width: 0; }
 .arrow {
     flex: none;
     width: 44px;
@@ -69,8 +68,61 @@ code { background: var(--outline); padding: 2px 6px; border-radius: 4px; }
 .arrow:hover:not(:disabled) { border-color: var(--hover-outline); }
 .arrow:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 3px; }
 .arrow:disabled { opacity: 0.35; cursor: default; }
-@media (max-width: 760px) { .grid-3 { grid-template-columns: 1fr; } }
 nav { margin-bottom: 24px; }
 .back { color: var(--text-muted); text-decoration: none; font-size: 0.97rem; }
 .back:hover { color: var(--hover-outline); }
 .back:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 3px; border-radius: 4px; }
+
+/* Tapestry: a fixed-height strip of rows that scrolls sideways. Each tile is as tall
+   as its row and as wide as its photo's aspect ratio needs. */
+.mosaic {
+    --mosaic-h: 540px;
+    --fade: 96px;
+    --fade-l: 0px;
+    --fade-r: 0px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    height: var(--mosaic-h);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent);
+}
+.mosaic::-webkit-scrollbar { display: none; }
+.mosaic.fade-left { --fade-l: var(--fade); }
+.mosaic.fade-right { --fade-r: var(--fade); }
+.mosaic-row {
+    display: flex;
+    width: max-content; /* rows extend past the strip so it can scroll */
+    gap: 6px;
+    flex: 1;
+    min-height: 0;
+}
+.tile {
+    position: relative;
+    flex: none;
+    height: 100%;
+    aspect-ratio: var(--ar);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--outline);
+    color: #fff;
+    text-decoration: none;
+}
+.tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tile-info {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 28px 14px 12px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+.tile:hover .tile-info, .tile:focus-visible .tile-info { opacity: 1; }
+.tile:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: -3px; }
+.tile h2 { margin: 0 0 2px; font-size: 1rem; line-height: 1.3; }
+.tile p { margin: 0; font-size: 0.85rem; color: rgba(255, 255, 255, 0.8); }
+@media (hover: none) { .tile-info { opacity: 1; } } /* touch screens can't hover */
+@media (max-width: 760px) { .mosaic { --mosaic-h: 360px; --fade: 40px; } }

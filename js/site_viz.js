@@ -14,7 +14,8 @@ const params = {
     "place_id" : PLACE_ID,
     "per_page" : 30,
 };
-const PAGE_SIZE = 3;
+const ROW_COUNT = 3;
+const GAP_AR = 0.03; // the gap between tiles, as a fraction of row height
 
 document.title = SPACE_NAME + " Open Space";
 document.getElementById("space-title").textContent = "Activity at " + SPACE_NAME;
@@ -24,82 +25,110 @@ grid.setAttribute("aria-label", "Activity at " + SPACE_NAME);
 const prev = document.getElementById("prev");
 const next = document.getElementById("next");
 
-let observations = [];
-let offset = 0;
-let total = 0;
-let page = 1;
+// One flex row per strip; row lengths are tracked in units of row height
+const rows = [];
+const rowLengths = [];
+for (let i = 0; i < ROW_COUNT; i++) {
+    const row = document.createElement("div");
+    row.className = "mosaic-row";
+    grid.appendChild(row);
+    rows.push(row);
+    rowLengths.push(0);
+}
 
-function makeCard(obs) {
+let shown = 0;
+let page = 0;
+let done = false;
+let loading = false;
+
+function mainPhoto(obs) {
+    return obs.observation_photos?.[0]?.photo;
+}
+
+function aspectRatio(photo) {
+    const dims = photo.original_dimensions;
+    return dims && dims.width && dims.height ? dims.width / dims.height : 1;
+}
+
+function makeTile(obs, ar) {
+    const photo = mainPhoto(obs);
+
     const a = document.createElement("a");
-    a.className = "space";
+    a.className = "tile";
     a.href = "https://www.inaturalist.org/observations/" + obs.id;
     a.target = "_blank";
     a.rel = "noopener";
+    a.style.setProperty("--ar", ar.toFixed(4));
 
-    // iNat returns the square thumbnail; swap to medium for a usable card image
-    const url = obs.observation_photos?.[0]?.photo?.url;
-    if (url) {
-        const img = document.createElement("img");
-        img.src = url.replace("/square.", "/medium.");
-        img.alt = obs.species_guess || "";
-        img.loading = "lazy";
-        a.appendChild(img);
-    } else {
-        const ph = document.createElement("div");
-        ph.className = "placeholder";
-        a.appendChild(ph);
-    }
+    // iNat returns the square thumbnail; swap to large so tiles stay sharp
+    const img = document.createElement("img");
+    img.src = photo.url.replace("/square.", "/large.");
+    img.alt = obs.species_guess || "";
+    img.loading = "lazy";
+    a.appendChild(img);
 
-    const body = document.createElement("div");
-    body.className = "space-body";
+    const info = document.createElement("div");
+    info.className = "tile-info";
     const h2 = document.createElement("h2");
     h2.textContent = obs.species_guess || "Unknown species";
-    body.appendChild(h2);
+    info.appendChild(h2);
     const p = document.createElement("p");
     p.textContent = [obs.user?.login && "Observed by " + obs.user.login, obs.observed_on]
         .filter(Boolean).join(" · ");
-    body.appendChild(p);
-    a.appendChild(body);
+    info.appendChild(p);
+    a.appendChild(info);
     return a;
 }
 
-function render() {
-    grid.replaceChildren(...observations.slice(offset, offset + PAGE_SIZE).map(makeCard));
-    prev.disabled = offset === 0;
-    next.disabled = offset + PAGE_SIZE >= total;
+// Add each tile to whichever row is currently shortest, keeping the strip's right edge even
+function addTile(obs) {
+    const ar = aspectRatio(mainPhoto(obs));
+    const i = rowLengths.indexOf(Math.min(...rowLengths));
+    rows[i].appendChild(makeTile(obs, ar));
+    rowLengths[i] += ar + GAP_AR;
+    shown += 1;
 }
 
-prev.addEventListener("click", () => {
-    offset = Math.max(0, offset - PAGE_SIZE);
-    render();
-});
-
-next.addEventListener("click", async () => {
-    offset += PAGE_SIZE;
-    if (offset + PAGE_SIZE > observations.length && observations.length < total) {
-        next.disabled = true;
-        const json_obj = await inat_request("observations", resp_params, {...params, "page" : page + 1});
-        if (json_obj && json_obj.results.length > 0) {
-            page += 1;
-            observations = observations.concat(json_obj.results);
-        } else {
-            total = observations.length; // stop paging if the API runs dry or errors
-        }
-        offset = Math.min(offset, Math.max(0, observations.length - 1));
-    }
-    render();
-});
-
-inat_request("observations",resp_params,params).then((json_obj) => {
+async function loadMore() {
+    if (loading || done) return;
+    loading = true;
+    const json_obj = await inat_request("observations", resp_params, {...params, "page" : page + 1});
     if (!json_obj || json_obj.results.length === 0) {
+        done = true; // stop paging if the API runs dry or errors
+    } else {
+        page += 1;
+        json_obj.results.filter((obs) => mainPhoto(obs)?.url).forEach(addTile);
+        if (page * params.per_page >= json_obj.total_results) done = true;
+    }
+    loading = false;
+    update();
+}
+
+function nearEnd() {
+    return grid.scrollLeft + grid.clientWidth > grid.scrollWidth - grid.clientWidth;
+}
+
+// Fade an edge only when there is more tapestry beyond it, and keep a screen of tiles buffered ahead
+function update() {
+    const atStart = grid.scrollLeft <= 1;
+    const atEnd = grid.scrollLeft + grid.clientWidth >= grid.scrollWidth - 1;
+    grid.classList.toggle("fade-left", !atStart);
+    grid.classList.toggle("fade-right", !atEnd || !done);
+    prev.disabled = atStart;
+    next.disabled = atEnd && done;
+    if (nearEnd()) loadMore();
+}
+
+grid.addEventListener("scroll", update, { passive: true });
+window.addEventListener("resize", update);
+prev.addEventListener("click", () => grid.scrollBy({ left: -grid.clientWidth * 0.8, behavior: "smooth" }));
+next.addEventListener("click", () => grid.scrollBy({ left: grid.clientWidth * 0.8, behavior: "smooth" }));
+
+loadMore().then(() => {
+    if (shown === 0) {
         const msg = document.createElement("p");
         msg.className = "empty";
         msg.innerHTML = "No observations found.";
         document.getElementById("carousel").replaceWith(msg);
-        return;
     }
-
-    observations = json_obj.results;
-    total = json_obj.total_results;
-    render();
 });
