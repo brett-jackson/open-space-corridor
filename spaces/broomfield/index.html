@@ -8,22 +8,28 @@
   <link rel="stylesheet" href="../../css/styles.css">
 </head>
 <body>
-  <main>
-    <nav><a class="back" href="../../index.html">&larr; All open spaces</a></nav>
-    <header>
-      <h1 id="space-title">Activity</h1>
-    </header>
-    <header>
-      <h2>Recent Observations</h2>
-    </header>
-    <div class="carousel" id="carousel">
-      <button class="arrow" id="prev" aria-label="Newer observations" disabled>&#8249;</button>
-      <section class="mosaic" id="grid" aria-label="Activity"></section>
-      <button class="arrow" id="next" aria-label="Older observations" disabled>&#8250;</button>
-    </div>
-  </main>
+  <div class="layout">
+    <aside class="sidebar">
+      <a class="back" href="../../index.html">&larr; All open spaces</a>
+      <nav class="section-nav" id="section-nav" aria-label="Sections"></nav>
+    </aside>
+    <main>
+      <header>
+        <h1 id="space-title">Activity</h1>
+      </header>
+      <section class="page-section" id="recent-observations">
+        <h2>Recent Observations</h2>
+        <div class="carousel" id="carousel">
+          <button class="arrow" id="prev" aria-label="Newer observations" disabled>&#8249;</button>
+          <div class="mosaic" id="grid" role="region" aria-label="Activity"></div>
+          <button class="arrow" id="next" aria-label="Older observations" disabled>&#8250;</button>
+        </div>
+      </section>
+    </main>
+  </div>
   <script src="../../js/queries.js"></script>
   <script src="constants.js"></script>
   <script src="../../js/site_viz.js"></script>
+  <script src="../../js/sections.js"></script>
 </body>
 </html>
