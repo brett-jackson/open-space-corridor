@@ -35,12 +35,32 @@
           <button class="arrow" id="next" aria-label="Older observations" disabled>&#8250;</button>
         </div>
       </section>
+      <section class="page-section" id="trends">
+        <h2>Trends</h2>
+        <div class="segmented" id="trend-metric" role="group" aria-label="Show trend of">
+          <button type="button" data-metric="observations" aria-pressed="true">Observations</button>
+          <button type="button" data-metric="species" aria-pressed="false">Species</button>
+          <button type="button" data-metric="observers" aria-pressed="false">Observers</button>
+        </div>
+        <div id="trend-body">
+          <figure class="trend-chart" id="trend-chart">
+            <div class="trend-tooltip" id="trend-tooltip" hidden></div>
+          </figure>
+          <p class="trend-note"><span id="trend-status" aria-live="polite"></span> Running totals at the end of each year, verifiable observations only.</p>
+          <details class="trend-data">
+            <summary>Show data table</summary>
+            <table id="trend-table"></table>
+          </details>
+        </div>
+      </section>
     </main>
   </div>
   <script src="../../js/queries.js"></script>
   <script src="constants.js"></script>
   <script src="../../js/top_observers.js"></script>
   <script src="../../js/site_viz.js"></script>
+  <script src="trends_cache.js"></script>
+  <script src="../../js/trends.js"></script>
   <script src="../../js/sections.js"></script>
 </body>
 </html>
