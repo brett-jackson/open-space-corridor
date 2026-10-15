@@ -1,5 +1,6 @@
 // Every open space on the site. `id` is its folder under spaces/ (image, trends_cache.js)
-// and its page URL: space.html?id=<id>. `place_id` is the iNaturalist place.
+// and its page URL: space.html?id=<id>. `place_id` is the iNaturalist place;
+// `location` is its [lat, lng], which arranges the landing page cards by direction.
 window.SPACES = [
   {
     "id": "broomfield",
@@ -7,7 +8,11 @@ window.SPACES = [
     "subtitle": "Broomfield, Colorado",
     "place_id": 150836,
     "description": "Keeping the Field in Broomfield",
-    "image": "spaces/broomfield/broomfield-county-commons-park-broomfield-co.jpg"
+    "image": "spaces/broomfield/broomfield-county-commons-park-broomfield-co.jpg",
+    "location": [
+      39.932,
+      -105.0429
+    ]
   },
   {
     "id": "metzger",
@@ -15,7 +20,11 @@ window.SPACES = [
     "subtitle": "Westminster, Colorado",
     "place_id": 141434,
     "description": "Metzger Farm, Est. 1943",
-    "image": "spaces/metzger/metzger-image.jpeg"
+    "image": "spaces/metzger/metzger-image.jpeg",
+    "location": [
+      39.9178,
+      -105.0284
+    ]
   },
   {
     "id": "plaster-reservoir",
@@ -23,6 +32,10 @@ window.SPACES = [
     "subtitle": "Broomfield, Colorado",
     "place_id": 141433,
     "description": "Plaster Reservoir",
-    "image": "spaces/plaster-reservoir/plaster-reservoir-image.jpeg"
+    "image": "spaces/plaster-reservoir/plaster-reservoir-image.jpeg",
+    "location": [
+      39.947,
+      -105.0251
+    ]
   }
 ];

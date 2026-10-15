@@ -148,6 +148,77 @@ code { background: var(--outline); padding: 2px 6px; border-radius: 4px; }
 @media (hover: none) { .tile-info { opacity: 1; } } /* touch screens can't hover */
 @media (max-width: 760px) { .mosaic { --mosaic-h: 360px; --fade: 20px; } }
 
+/* Landing page map: OpenTopoMap terrain with photo markers that expand on hover */
+.space-map {
+    height: min(72vh, 680px);
+    min-height: 420px;
+    border: 1px solid var(--outline);
+    border-radius: var(--radius);
+    background: var(--bg-box);
+    z-index: 0; /* keep Leaflet's panes below any page overlays */
+}
+.space-map .leaflet-tile-pane { filter: saturate(0.85) brightness(0.92); } /* soften the bright tiles on the dark page */
+.space-map .leaflet-control-attribution { background: rgba(16, 22, 28, 0.75); color: var(--text-muted); }
+.space-map .leaflet-control-attribution a { color: var(--text); }
+.space-map .leaflet-bar a { background: var(--bg-box); color: var(--text); border-color: var(--outline); }
+.space-map .leaflet-bar a:hover { background: var(--outline); }
+.map-marker { background: none; border: none; }
+.map-marker:hover, .map-marker:focus-within { z-index: 10000 !important; }
+.map-card {
+    position: absolute;
+    left: 50%;
+    bottom: 7px; /* sits right on top of the pointer */
+    transform: translateX(-50%);
+    width: 64px;
+    border: 2px solid #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--bg-box);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45);
+    color: var(--text);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; /* Leaflet sets its own */
+    text-decoration: none;
+    transition: width 0.2s ease, border-color 0.2s ease;
+}
+/* Small pointer under the marker, at the place's exact location */
+.map-marker > div::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 0;
+    height: 0;
+    transform: translateX(-50%);
+    border: 7px solid transparent;
+    border-bottom: none;
+    border-top-color: #fff;
+}
+/* Leaflet forces width: auto on marker images, so out-rank its selector */
+.leaflet-container .leaflet-marker-pane .map-card img, .map-card .placeholder {
+    display: block;
+    width: 100%;
+    height: 60px;
+    object-fit: cover;
+    background: var(--outline);
+    transition: height 0.2s ease;
+}
+.map-card-body {
+    max-height: 0;
+    padding: 0 14px;
+    opacity: 0;
+    transition: max-height 0.2s ease, opacity 0.15s ease, padding 0.2s ease;
+}
+.leaflet-container .map-card { color: var(--text); } /* not Leaflet's blue link color */
+.map-card h2 { margin: 0 0 4px; font-size: 1.05rem; line-height: 1.3; }
+.map-card p { margin: 0; color: var(--text-muted); font-size: 0.88rem; }
+.map-card:hover, .map-card:focus-visible { width: 260px; border-color: var(--hover-outline); outline: none; }
+.leaflet-container .leaflet-marker-pane .map-card:hover img, .leaflet-container .leaflet-marker-pane .map-card:focus-visible img,
+.map-card:hover .placeholder, .map-card:focus-visible .placeholder { height: 150px; }
+.map-card:hover .map-card-body, .map-card:focus-visible .map-card-body { max-height: 140px; padding: 12px 14px 14px; opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+    .map-card, .leaflet-container .leaflet-marker-pane .map-card img, .map-card .placeholder, .map-card-body { transition: none; }
+}
+
 /* Space pages: a sticky sidebar of section links beside normally scrolling content */
 html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

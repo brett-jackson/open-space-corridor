@@ -3,36 +3,39 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Colorado Open Spaces</title>
+  <title>Open Space Corridors</title>
   <meta name="description" content="Colorado open spaces.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
   <main>
     <header>
-      <h1>Open Spaces</h1>
+      <h1>Open Space Corridors</h1>
     </header>
-    <section class="grid" id="grid" aria-label="Open Spaces"></section>
+    <div class="space-map" id="space-map" role="region" aria-label="Map of open spaces"></div>
+    <section class="grid" id="grid" aria-label="Open spaces"></section>
   </main>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="js/spaces.js"></script>
   <script>
     const grid = document.getElementById("grid");
+    const map_el = document.getElementById("space-map");
     const spaces = window.SPACES || [];
+    const located = spaces.filter((spc) => Array.isArray(spc.location));
 
-    if (spaces.length === 0) {
-      const msg = document.createElement("p");
-      msg.className = "empty";
-      msg.innerHTML = "No spaces found.";
-      grid.replaceWith(msg);
+    function spaceHref(spc) {
+      return "space.html?id=" + encodeURIComponent(spc.id);
     }
 
-    for (const spc of spaces) {
+    // The original card; used as the fallback list when the map can't be shown
+    function makeCard(spc) {
       const a = document.createElement("a");
       a.className = "space";
-      a.href = "space.html?id=" + encodeURIComponent(spc.id);
+      a.href = spaceHref(spc);
 
       if (spc.image) {
         const img = document.createElement("img");
@@ -57,7 +60,81 @@
         body.appendChild(p);
       }
       a.appendChild(body);
-      grid.appendChild(a);
+      return a;
+    }
+
+    // Small photo marker that grows into a card on hover or keyboard focus
+    function makeMarker(spc) {
+      const a = document.createElement("a");
+      a.className = "map-card";
+      a.href = spaceHref(spc);
+      a.setAttribute("aria-label", spc.title);
+
+      if (spc.image) {
+        const img = document.createElement("img");
+        img.src = spc.image;
+        img.alt = "";
+        a.appendChild(img);
+      } else {
+        const ph = document.createElement("div");
+        ph.className = "placeholder";
+        a.appendChild(ph);
+      }
+
+      const body = document.createElement("div");
+      body.className = "map-card-body";
+      const h2 = document.createElement("h2");
+      h2.textContent = spc.title;
+      body.appendChild(h2);
+      if (spc.description) {
+        const p = document.createElement("p");
+        p.textContent = spc.description;
+        body.appendChild(p);
+      }
+      a.appendChild(body);
+
+      const wrap = document.createElement("div");
+      wrap.appendChild(a);
+      return wrap;
+    }
+
+    if (spaces.length === 0) {
+      const msg = document.createElement("p");
+      msg.className = "empty";
+      msg.innerHTML = "No spaces found.";
+      grid.replaceWith(msg);
+      map_el.remove();
+    } else if (typeof L === "undefined" || located.length === 0) {
+      // No map library (e.g. offline) or no coordinates: show the plain card grid, north to south
+      map_el.remove();
+      [...spaces].sort((a, b) => (b.location?.[0] ?? 0) - (a.location?.[0] ?? 0))
+        .forEach((spc) => grid.appendChild(makeCard(spc)));
+    } else {
+      grid.remove();
+      const map = L.map(map_el, { scrollWheelZoom: false, zoomSnap: 0.25 });
+      L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+        maxZoom: 17,
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
+          '<a href="http://viewfinderpanoramas.org">SRTM</a> | Map style &copy; <a href="https://opentopomap.org">OpenTopoMap</a> ' +
+          '(<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
+      }).addTo(map);
+
+      located.forEach((spc) => {
+        L.marker(spc.location, {
+          icon: L.divIcon({ className: "map-marker", html: makeMarker(spc), iconSize: [64, 64], iconAnchor: [32, 64] }),
+          riseOnHover: true,
+          keyboard: false, // the link inside the marker is the focus target
+        }).addTo(map);
+      });
+
+      // Frame every space with room for the markers to expand
+      const fit = () => map.fitBounds(L.latLngBounds(located.map((spc) => spc.location)), {
+        paddingTopLeft: [140, 250], // expanded cards grow upward from their pin
+        paddingBottomRight: [140, 40],
+        maxZoom: 14,
+      });
+      fit();
+      window.addEventListener("resize", fit);
     }
   </script>
 </body>
