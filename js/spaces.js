@@ -49,5 +49,17 @@ window.SPACES = [
       39.9452,
       -105.06
     ]
+  },
+  {
+    "id": "wottge",
+    "title": "Wottge Open Space",
+    "subtitle": "Broomfield, Colorado",
+    "place_id": 241806,
+    "description": "",
+    "image": "spaces/wottge/wottge.jpg",
+    "location": [
+      39.9538,
+      -105.0554
+    ]
   }
 ];
