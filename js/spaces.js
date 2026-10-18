@@ -6,7 +6,7 @@
 window.SPACES = [
   {
     "id": "broomfield",
-    "title": "Broomfield Open Space",
+    "title": "Broomfield Commons Open Space",
     "subtitle": "Broomfield, Colorado",
     "place_id": 150836,
     "description": "Keeping the Field in Broomfield",
@@ -67,7 +67,7 @@ window.SPACES = [
   {
     "id": "the-field",
     "title": "The Field Open Space",
-    "subtitle": "",
+    "subtitle": "Broomfield, Colorado",
     "bbox": [
       [
         39.92883528272712,
@@ -91,7 +91,7 @@ window.SPACES = [
       ]
     ],
     "description": "",
-    "image": "",
+    "image": "spaces/the-field/the-field.jpeg",
     "location": [
       39.9253,
       -105.0671
