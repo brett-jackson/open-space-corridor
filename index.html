@@ -21,6 +21,7 @@
   </main>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="js/spaces.js"></script>
+  <script src="js/boundaries.js"></script>
   <script>
     const grid = document.getElementById("grid");
     const map_el = document.getElementById("space-map");
@@ -112,23 +113,53 @@
     } else {
       grid.remove();
       const map = L.map(map_el, { scrollWheelZoom: false, zoomSnap: 0.25 });
-      L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
-        maxZoom: 17,
-        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
-          '<a href="http://viewfinderpanoramas.org">SRTM</a> | Map style &copy; <a href="https://opentopomap.org">OpenTopoMap</a> ' +
-          '(<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
+      // Esri hybrid: World Imagery satellite photos with transparent road and place-name overlays.
+      // Esri-style tile services, so the URLs are z/y/x
+      const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/";
+      L.tileLayer(ESRI + "World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+        maxZoom: 18,
+        attribution: 'Imagery &copy; <a href="https://www.esri.com/">Esri</a>, Maxar, Earthstar Geographics, and the GIS User Community',
+      }).addTo(map);
+      L.tileLayer(ESRI + "Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}", { maxZoom: 18 }).addTo(map);
+      L.tileLayer(ESRI + "Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", {
+        maxZoom: 18,
+        attribution: 'Labels &copy; Esri',
       }).addTo(map);
 
+      // Boundary outlines from js/boundaries.js (optional; built by scripts/update_boundaries.py)
+      const boundaries = window.SPACE_BOUNDARIES || {};
+      const frame = L.latLngBounds(located.map((spc) => spc.location));
+
       located.forEach((spc) => {
+        let outline = null;
+        if (boundaries[spc.id]) {
+          outline = L.geoJSON(boundaries[spc.id], { style: { className: "space-boundary" }, interactive: true }).addTo(map);
+          outline.on("click", () => { location.href = spaceHref(spc); });
+          frame.extend(outline.getBounds());
+        }
+
+        const marker_html = makeMarker(spc);
         L.marker(spc.location, {
-          icon: L.divIcon({ className: "map-marker", html: makeMarker(spc), iconSize: [64, 64], iconAnchor: [32, 64] }),
+          icon: L.divIcon({ className: "map-marker", html: marker_html, iconSize: [64, 64], iconAnchor: [32, 64] }),
           riseOnHover: true,
           keyboard: false, // the link inside the marker is the focus target
         }).addTo(map);
+
+        // Hovering or focusing either the marker or the outline highlights the outline
+        if (outline) {
+          const card = marker_html.firstChild;
+          const setActive = (on) => outline.eachLayer((layer) => layer.getElement()?.classList.toggle("active", on));
+          card.addEventListener("pointerenter", () => setActive(true));
+          card.addEventListener("pointerleave", () => setActive(false));
+          card.addEventListener("focus", () => setActive(true));
+          card.addEventListener("blur", () => setActive(false));
+          outline.on("mouseover", () => setActive(true));
+          outline.on("mouseout", () => setActive(false));
+        }
       });
 
-      // Frame every space with room for the markers to expand
-      const fit = () => map.fitBounds(L.latLngBounds(located.map((spc) => spc.location)), {
+      // Frame every space and its boundary, with room for the markers to expand
+      const fit = () => map.fitBounds(frame, {
         paddingTopLeft: [140, 250], // expanded cards grow upward from their pin
         paddingBottomRight: [140, 40],
         maxZoom: 14,

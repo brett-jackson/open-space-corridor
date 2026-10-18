@@ -148,7 +148,7 @@ code { background: var(--outline); padding: 2px 6px; border-radius: 4px; }
 @media (hover: none) { .tile-info { opacity: 1; } } /* touch screens can't hover */
 @media (max-width: 760px) { .mosaic { --mosaic-h: 360px; --fade: 20px; } }
 
-/* Landing page map: OpenTopoMap terrain with photo markers that expand on hover */
+/* Landing page map: Esri satellite hybrid with photo markers that expand on hover */
 .space-map {
     height: min(72vh, 680px);
     min-height: 420px;
@@ -157,11 +157,24 @@ code { background: var(--outline); padding: 2px 6px; border-radius: 4px; }
     background: var(--bg-box);
     z-index: 0; /* keep Leaflet's panes below any page overlays */
 }
-.space-map .leaflet-tile-pane { filter: saturate(0.85) brightness(0.92); } /* soften the bright tiles on the dark page */
 .space-map .leaflet-control-attribution { background: rgba(16, 22, 28, 0.75); color: var(--text-muted); }
 .space-map .leaflet-control-attribution a { color: var(--text); }
 .space-map .leaflet-bar a { background: var(--bg-box); color: var(--text); border-color: var(--outline); }
 .space-map .leaflet-bar a:hover { background: var(--outline); }
+/* Open space boundaries: a soft glowing outline that brightens with its marker */
+.space-boundary {
+    stroke: #fff;
+    stroke-width: 2;
+    stroke-opacity: 0.85;
+    stroke-linejoin: round;
+    fill: var(--hover-outline);
+    fill-opacity: 0.08;
+    filter: drop-shadow(0 0 3px rgba(125, 176, 255, 0.9));
+    cursor: pointer;
+    transition: stroke 0.2s ease, stroke-width 0.2s ease, fill-opacity 0.2s ease;
+}
+.space-boundary.active { stroke: var(--hover-outline); stroke-width: 3; fill-opacity: 0.22; }
+@media (prefers-reduced-motion: reduce) { .space-boundary { transition: none; } }
 .map-marker { background: none; border: none; }
 .map-marker:hover, .map-marker:focus-within { z-index: 10000 !important; }
 .map-card {
