@@ -96,5 +96,17 @@ window.SPACES = [
       39.9253,
       -105.0671
     ]
+  },
+  {
+    "id": "mckay-lake",
+    "title": "McKay Lake Open Space",
+    "subtitle": "Westminster, Colorado",
+    "place_id": 150834,
+    "description": "",
+    "image": "spaces/mckay-lake/mckay-lake.jpeg",
+    "location": [
+      39.953,
+      -105.0128
+    ]
   }
 ];
