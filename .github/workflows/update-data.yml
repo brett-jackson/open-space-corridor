@@ -1,0 +1,45 @@
+name: Update iNaturalist data
+
+# Refreshes the static data files the site serves (boundaries, trends caches, featured
+# species) and commits them when anything changed. A run makes roughly 30 requests,
+# spaced 1 second apart by the scripts, well within iNaturalist's API guidelines.
+on:
+  schedule:
+    - cron: "17 * * * *" # hourly, off the top of the hour when GitHub's scheduler is busiest
+  workflow_dispatch: # allow a manual run from the Actions tab
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # Order matters: featured species reads the boundaries and the trends caches' stand-in boxes
+      - name: Update boundaries
+        run: python3 scripts/update_boundaries.py
+
+      - name: Update trends caches
+        run: python3 scripts/update_trends_cache.py
+
+      - name: Update featured species
+        run: python3 scripts/update_featured_species.py
+
+      - name: Commit changes
+        run: |
+          if git diff --quiet; then
+            echo "No data changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add js/boundaries.js js/featured_species.js spaces/*/trends_cache.js
+          git commit -m "Update iNaturalist data"
+          git push
