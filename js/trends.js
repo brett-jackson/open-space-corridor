@@ -32,6 +32,11 @@ const compact = new Intl.NumberFormat("en-US", { notation: "compact", maximumFra
 
 // Seed from the static cache when the space has one
 const trend_cache = typeof TRENDS_CACHE !== "undefined" && TRENDS_CACHE.cumulative && TRENDS_CACHE.place_id === PLACE_ID ? TRENDS_CACHE : null;
+// A bounding-box stand-in cache (place not indexed yet) counts the same box live
+if (trend_cache && trend_cache.bbox) {
+    delete trend_params["place_id"];
+    Object.assign(trend_params, trend_cache.bbox);
+}
 if (trend_cache) {
     Object.keys(trend_metrics).forEach((metric) => {
         trend_data[metric] = {};

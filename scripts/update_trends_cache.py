@@ -12,6 +12,9 @@ just the years missing from a cache are requested, plus the most recent cached y
     python3 scripts/update_trends_cache.py broomfield       # just these spaces
     python3 scripts/update_trends_cache.py --refresh-years 3  # also re-fetch the last 3 cached years
     python3 scripts/update_trends_cache.py --full           # rebuild from scratch
+    python3 scripts/update_trends_cache.py markel --bbox 39.9461,-105.0613,39.9452,-105.0619
+        # stand-in for a place iNaturalist hasn't indexed yet: count a bounding box instead
+        # (nelat,nelng,swlat,swlng); the next normal run replaces it once the place has data
 """
 import argparse
 import datetime
@@ -68,25 +71,29 @@ def write_cache(path, cache):
     )
 
 
-def update_space(space, full, refresh_years):
+def update_space(space, full, refresh_years, bbox=None):
     place_id = space["place_id"]
+    area = bbox or {"place_id": place_id}  # what to count observations in
     space_dir = SPACES_DIR / space["id"]
     space_dir.mkdir(exist_ok=True)
     cache_path = space_dir / "trends_cache.js"
-    old = None if full else read_cache(cache_path)
+    old = None if full or bbox else read_cache(cache_path)
     if old and old.get("place_id") != place_id:
         print(f"  PLACE_ID changed ({old.get('place_id')} -> {place_id}); rebuilding")
         old = None
     if old and not old.get("cumulative"):
         print("  cache is in the old per-year format; rebuilding")
         old = None
+    if old and old.get("bbox"):
+        print("  cache is a bounding-box stand-in; rebuilding from the place")
+        old = None
     this_year = datetime.date.today().year
 
     # Observations: one histogram request covers every year; the running sum is cumulative
-    hist = inat("observations/histogram", place_id=place_id, interval="year", date_field="observed")
+    hist = inat("observations/histogram", **area, interval="year", date_field="observed")
     per_year = {int(d[:4]): n for d, n in hist["results"]["year"].items() if int(d[:4]) < this_year}
     if not per_year:
-        print("  no completed years with observations; skipping")
+        print("  no completed years with observations; skipping (any existing cache is left as is)")
         return
     years = list(range(min(per_year), this_year))
     observations, total = {}, 0
@@ -100,6 +107,8 @@ def update_space(space, full, refresh_years):
         "cumulative": True,
         "observations": {str(y): observations.get(y, 0) for y in years},
     }
+    if bbox:
+        cache["bbox"] = bbox  # the site counts this same box for the current year
     cached_years = sorted(int(y) for y in (old or {}).get("species", {}))
     stale = set(cached_years[-refresh_years:]) if refresh_years > 0 else set()
 
@@ -111,7 +120,7 @@ def update_space(space, full, refresh_years):
             if str(y) in previous and y not in stale:
                 counts[str(y)] = previous[str(y)]
                 continue
-            counts[str(y)] = inat(path, place_id=place_id, d2=f"{y}-12-31", per_page=0)["total_results"]
+            counts[str(y)] = inat(path, **area, d2=f"{y}-12-31", per_page=0)["total_results"]
             print(f"  {metric} {y}: {counts[str(y)]}")
         cache[metric] = counts
 
@@ -123,8 +132,17 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("spaces", nargs="*", help="space ids from js/spaces.js (default: all)")
     parser.add_argument("--full", action="store_true", help="ignore existing caches and refetch every year")
+    parser.add_argument("--bbox", help="nelat,nelng,swlat,swlng to count instead of the place (one space only)")
     parser.add_argument("--refresh-years", type=int, default=1, help="re-fetch this many of the latest cached years (default 1)")
     args = parser.parse_args()
+
+    bbox = None
+    if args.bbox:
+        if len(args.spaces) != 1:
+            parser.error("--bbox needs exactly one space id")
+        bbox = dict(zip(("nelat", "nelng", "swlat", "swlng"), (float(v) for v in args.bbox.split(","))))
+        if len(bbox) != 4:
+            parser.error("--bbox is nelat,nelng,swlat,swlng")
 
     spaces = read_spaces()
     names = args.spaces or list(spaces)
@@ -134,7 +152,7 @@ def main():
             print(f"  not in {SPACES_JS.relative_to(ROOT)}; skipping", file=sys.stderr)
             continue
         try:
-            update_space(spaces[name], args.full, args.refresh_years)
+            update_space(spaces[name], args.full, args.refresh_years, bbox)
         except Exception as err:  # keep going so one bad space doesn't block the rest
             print(f"  failed: {err}", file=sys.stderr)
 

@@ -37,5 +37,17 @@ window.SPACES = [
       39.947,
       -105.0251
     ]
+  },
+  {
+    "id": "markel",
+    "title": "Markel Open Space",
+    "subtitle": "Broomfield, Colorado",
+    "place_id": 241801,
+    "description": "",
+    "image": "spaces/markel/markel.jpg",
+    "location": [
+      39.9452,
+      -105.06
+    ]
   }
 ];
