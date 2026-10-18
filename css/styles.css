@@ -191,8 +191,11 @@ code { background: var(--outline); padding: 2px 6px; border-radius: 4px; }
     color: var(--text);
     font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; /* Leaflet sets its own */
     text-decoration: none;
-    transition: width 0.2s ease, border-color 0.2s ease;
+    transition: width 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
+/* Near the top of the map, the card grows downward from the thumbnail (same resting spot) */
+.map-marker > div.down .map-card { top: -7px; bottom: auto; }
+.map-marker > div.down:hover::after, .map-marker > div.down:focus-within::after { visibility: hidden; }
 /* Small pointer under the marker, at the place's exact location */
 .map-marker > div::after {
     content: "";
@@ -224,7 +227,12 @@ code { background: var(--outline); padding: 2px 6px; border-radius: 4px; }
 .leaflet-container .map-card { color: var(--text); } /* not Leaflet's blue link color */
 .map-card h2 { margin: 0 0 4px; font-size: 1.05rem; line-height: 1.3; }
 .map-card p { margin: 0; color: var(--text-muted); font-size: 0.88rem; }
-.map-card:hover, .map-card:focus-visible { width: 260px; border-color: var(--hover-outline); outline: none; }
+.map-card:hover, .map-card:focus-visible {
+    width: 260px;
+    transform: translateX(calc(-50% + var(--shift-x, 0px))); /* set in index.html to stay inside the map */
+    border-color: var(--hover-outline);
+    outline: none;
+}
 .leaflet-container .leaflet-marker-pane .map-card:hover img, .leaflet-container .leaflet-marker-pane .map-card:focus-visible img,
 .map-card:hover .placeholder, .map-card:focus-visible .placeholder { height: 150px; }
 .map-card:hover .map-card-body, .map-card:focus-visible .map-card-body { max-height: 140px; padding: 12px 14px 14px; opacity: 1; }

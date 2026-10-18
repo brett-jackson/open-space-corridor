@@ -112,7 +112,8 @@
         .forEach((spc) => grid.appendChild(makeCard(spc)));
     } else {
       grid.remove();
-      const map = L.map(map_el, { scrollWheelZoom: false, zoomSnap: 0.25 });
+      // Scroll to zoom toward the pointer; quarter-level steps keep it smooth
+      const map = L.map(map_el, { scrollWheelZoom: true, zoomSnap: 0.25, wheelPxPerZoomLevel: 90 });
       // Esri hybrid: World Imagery satellite photos with transparent road and place-name overlays.
       // Esri-style tile services, so the URLs are z/y/x
       const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/";
@@ -125,6 +126,8 @@
         maxZoom: 18,
         attribution: 'Labels &copy; Esri',
       }).addTo(map);
+
+      const EXPANDED_CARD = { w: 260, h: 250 }; // matches .map-card:hover in styles.css
 
       // Boundary outlines from js/boundaries.js (optional; built by scripts/update_boundaries.py)
       const boundaries = window.SPACE_BOUNDARIES || {};
@@ -145,9 +148,21 @@
           keyboard: false, // the link inside the marker is the focus target
         }).addTo(map);
 
+        // Before a card expands, keep it inside the map: slide it sideways off the edges,
+        // and grow it downward from the thumbnail when there isn't room above the pin
+        const card = marker_html.firstChild;
+        const placeCard = () => {
+          const pt = map.latLngToContainerPoint(spc.location);
+          const half = EXPANDED_CARD.w / 2 + 8;
+          const shift = Math.max(half - pt.x, Math.min(0, map_el.clientWidth - half - pt.x));
+          card.style.setProperty("--shift-x", shift + "px");
+          marker_html.classList.toggle("down", pt.y < EXPANDED_CARD.h + 16);
+        };
+        card.addEventListener("pointerenter", placeCard);
+        card.addEventListener("focus", placeCard);
+
         // Hovering or focusing either the marker or the outline highlights the outline
         if (outline) {
-          const card = marker_html.firstChild;
           const setActive = (on) => outline.eachLayer((layer) => layer.getElement()?.classList.toggle("active", on));
           card.addEventListener("pointerenter", () => setActive(true));
           card.addEventListener("pointerleave", () => setActive(false));
@@ -160,9 +175,9 @@
 
       // Frame every space and its boundary, with room for the markers to expand
       const fit = () => map.fitBounds(frame, {
-        paddingTopLeft: [140, 250], // expanded cards grow upward from their pin
-        paddingBottomRight: [140, 40],
-        maxZoom: 14,
+        paddingTopLeft: [50, 90], // room for the resting markers, which sit above their pins
+        paddingBottomRight: [50, 30],
+        maxZoom: 16,
       });
       fit();
       window.addEventListener("resize", fit);
