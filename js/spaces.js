@@ -10,7 +10,7 @@ window.SPACES = [
     "subtitle": "Broomfield, Colorado",
     "place_id": 150836,
     "description": "Keeping the Field in Broomfield",
-    "image": "spaces/broomfield/broomfield-county-commons-park-broomfield-co.jpg",
+    "image": "spaces/broomfield/broomfield-county-commons.avif",
     "location": [
       39.932,
       -105.0429
