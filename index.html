@@ -12,19 +12,26 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <main>
+  <main class="landing" id="landing">
     <header>
       <h1>Open Space Corridors</h1>
     </header>
-    <div class="space-map" id="space-map" role="region" aria-label="Map of open spaces"></div>
+    <div class="landing-body" id="landing-body">
+      <div class="space-map" id="space-map" role="region" aria-label="Map of open spaces"></div>
+      <aside class="space-panel" id="space-panel" aria-live="polite">
+        <p class="panel-hint">Hover over an open space to see its featured species.</p>
+      </aside>
+    </div>
     <section class="grid" id="grid" aria-label="Open spaces"></section>
   </main>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="js/spaces.js"></script>
   <script src="js/boundaries.js"></script>
+  <script src="js/featured_species.js"></script>
   <script>
     const grid = document.getElementById("grid");
     const map_el = document.getElementById("space-map");
+    const panel = document.getElementById("space-panel");
     const spaces = window.SPACES || [];
     const located = spaces.filter((spc) => Array.isArray(spc.location));
 
@@ -99,15 +106,109 @@
       return wrap;
     }
 
+    // Without the map, fall back to the plain page layout with no side panel
+    function useListLayout() {
+      document.getElementById("landing-body").remove();
+      document.getElementById("landing").classList.remove("landing");
+    }
+
+    // Side panel: the hovered space's most distinctive species (js/featured_species.js)
+    const featured = window.FEATURED_SPECIES || { by_space: {} };
+    let panel_space = null;
+
+    function showPanel(spc) {
+      if (panel_space === spc.id) return;
+      panel_space = spc.id;
+
+      const title = document.createElement("h2");
+      title.className = "panel-title";
+      const link = document.createElement("a");
+      link.href = spaceHref(spc);
+      link.textContent = spc.title;
+      title.appendChild(link);
+      const parts = [title];
+      if (spc.subtitle) {
+        const sub = document.createElement("p");
+        sub.className = "panel-subtitle";
+        sub.textContent = spc.subtitle;
+        parts.push(sub);
+      }
+
+      const heading = document.createElement("h3");
+      heading.className = "panel-heading";
+      heading.textContent = "Featured Species";
+      parts.push(heading);
+
+      const list = featured.by_space[spc.id] || [];
+      if (list.length === 0) {
+        const none = document.createElement("p");
+        none.className = "panel-hint";
+        none.textContent = "Not enough observations here yet.";
+        parts.push(none);
+      } else {
+        const ol = document.createElement("ol");
+        ol.className = "featured-species";
+        list.forEach((sp) => {
+          const li = document.createElement("li");
+          const a = document.createElement("a");
+          a.href = "https://www.inaturalist.org/taxa/" + sp.taxon_id;
+          a.target = "_blank";
+          a.rel = "noopener";
+
+          if (sp.photo) {
+            const img = document.createElement("img");
+            img.src = sp.photo;
+            img.alt = "";
+            img.loading = "lazy";
+            img.title = sp.attribution; // iNaturalist photo credit
+            a.appendChild(img);
+          } else {
+            const ph = document.createElement("span");
+            ph.className = "placeholder";
+            a.appendChild(ph);
+          }
+
+          const text = document.createElement("span");
+          text.className = "featured-text";
+          const common = document.createElement("span");
+          common.className = "featured-common";
+          common.textContent = sp.common_name || sp.name;
+          text.appendChild(common);
+          if (sp.common_name) {
+            const sci = document.createElement("span");
+            sci.className = "featured-sci";
+            sci.textContent = sp.name;
+            text.appendChild(sci);
+          }
+          const meta = document.createElement("span");
+          meta.className = "featured-meta";
+          const where = sp.spaces === 1 ? "only here" : `in ${sp.spaces} of ${featured.spaces_compared} spaces`;
+          meta.textContent = `${sp.count.toLocaleString()} ${sp.count === 1 ? "observation" : "observations"} · ${where}`;
+          text.appendChild(meta);
+          a.appendChild(text);
+
+          li.appendChild(a);
+          ol.appendChild(li);
+        });
+        parts.push(ol);
+        const note = document.createElement("p");
+        note.className = "panel-note";
+        note.textContent = "Ranked by TF-IDF: species observed often here but in few of the corridor's other spaces. Species introduced to Colorado are left out. Photos from iNaturalist; hover a photo for its credit.";
+        parts.push(note);
+      }
+      panel.replaceChildren(...parts);
+      panel.scrollTop = 0;
+    }
+
     if (spaces.length === 0) {
       const msg = document.createElement("p");
       msg.className = "empty";
       msg.innerHTML = "No spaces found.";
       grid.replaceWith(msg);
-      map_el.remove();
+      useListLayout();
     } else if (typeof L === "undefined" || located.length === 0) {
       // No map library (e.g. offline) or no coordinates: show the plain card grid, north to south
-      map_el.remove();
+      useListLayout();
       [...spaces].sort((a, b) => (b.location?.[0] ?? 0) - (a.location?.[0] ?? 0))
         .forEach((spc) => grid.appendChild(makeCard(spc)));
     } else {
@@ -160,6 +261,9 @@
         };
         card.addEventListener("pointerenter", placeCard);
         card.addEventListener("focus", placeCard);
+        // The side panel keeps the last space shown, so the pointer can travel over to it
+        card.addEventListener("pointerenter", () => showPanel(spc));
+        card.addEventListener("focus", () => showPanel(spc));
 
         // Hovering or focusing either the marker or the outline highlights the outline
         if (outline) {
@@ -168,7 +272,7 @@
           card.addEventListener("pointerleave", () => setActive(false));
           card.addEventListener("focus", () => setActive(true));
           card.addEventListener("blur", () => setActive(false));
-          outline.on("mouseover", () => setActive(true));
+          outline.on("mouseover", () => { setActive(true); showPanel(spc); });
           outline.on("mouseout", () => setActive(false));
         }
       });
