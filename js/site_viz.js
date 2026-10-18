@@ -1,6 +1,9 @@
 const resp_params = {
     "id" : true,
-    "species_guess" : true,
+    "taxon" : {
+        "name" : true,
+        "preferred_common_name" : true
+    },
     "observed_on" : true,
     "user" : {
         "login" : true,
@@ -69,14 +72,16 @@ function makeTile(obs, ar) {
     // iNat returns the square thumbnail; swap to large so tiles stay sharp
     const img = document.createElement("img");
     img.src = photo.url.replace("/square.", "/large.");
-    img.alt = obs.species_guess || "";
+    const display = taxonDisplayName(obs.taxon);
+    img.alt = display.text;
     img.loading = "lazy";
     a.appendChild(img);
 
     const info = document.createElement("div");
     info.className = "tile-info";
     const h2 = document.createElement("h2");
-    h2.textContent = obs.species_guess || "Unknown species";
+    h2.textContent = display.text;
+    if (display.scientific) h2.classList.add("scientific");
     info.appendChild(h2);
     const p = document.createElement("p");
     p.textContent = [obs.user?.login && "Observed by " + obs.user.login, obs.observed_on]

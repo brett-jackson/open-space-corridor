@@ -28,6 +28,7 @@
   <script src="js/spaces.js"></script>
   <script src="js/boundaries.js"></script>
   <script src="js/featured_species.js"></script>
+  <script src="js/names.js"></script>
   <script>
     const grid = document.getElementById("grid");
     const map_el = document.getElementById("space-map");
@@ -172,7 +173,8 @@
           text.className = "featured-text";
           const common = document.createElement("span");
           common.className = "featured-common";
-          common.textContent = sp.common_name || sp.name;
+          common.textContent = sp.common_name ? formatCommonName(sp.common_name) : sp.name;
+          if (!sp.common_name) common.classList.add("scientific");
           text.appendChild(common);
           if (sp.common_name) {
             const sci = document.createElement("span");
