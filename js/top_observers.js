@@ -1,4 +1,4 @@
-// Top three observers at PLACE_ID, ranked by number of verifiable observations or species
+// Top three observers in the space's area, ranked by number of verifiable observations or species
 const observer_fields = {
     "observation_count" : true,
     "species_count" : true,
@@ -9,7 +9,7 @@ const observer_fields = {
 };
 const observer_params = {
     "verifiable" : true,
-    "place_id" : PLACE_ID,
+    ...AREA_PARAMS,
     "per_page" : 3,
 };
 const observer_metrics = {
@@ -26,7 +26,7 @@ function makeObserver(result, index) {
     li.className = "observer";
 
     const a = document.createElement("a");
-    a.href = "https://www.inaturalist.org/observations?verifiable=true&place_id=" + PLACE_ID + "&user_id=" + encodeURIComponent(user.login || "") + metric.view;
+    a.href = "https://www.inaturalist.org/observations?verifiable=true&" + AREA_QUERY + "&user_id=" + encodeURIComponent(user.login || "") + metric.view;
     a.target = "_blank";
     a.rel = "noopener";
 
@@ -74,10 +74,29 @@ function makeObserver(result, index) {
 const observer_list = document.getElementById("observers");
 const metric_buttons = document.querySelectorAll("#observer-metric button");
 
+// With excluded boxes, rank from the area's individual observations instead of the API's totals
+async function observersFromObservations(metric) {
+    const all = await allAreaObservations();
+    if (!all) return null;
+    const by_user = {};
+    all.forEach((obs) => {
+        const login = obs.user?.login;
+        if (!login) return;
+        const u = by_user[login] || (by_user[login] = { user: obs.user, observation_count: 0, taxa: new Set() });
+        u.observation_count += 1;
+        if (isSpeciesLevel(obs.taxon)) u.taxa.add(obs.taxon.id);
+    });
+    const results = Object.values(by_user).map((u) => ({ user: u.user, observation_count: u.observation_count, species_count: u.taxa.size }));
+    results.sort((a, b) => b[metric.field] - a[metric.field]);
+    return { results: results.slice(0, 3) };
+}
+
 async function loadObservers() {
     const request_id = ++observer_request_id;
     const metric = observer_metrics[observer_metric];
-    const json_obj = await inat_request("observations/observers", observer_fields, {...observer_params, ...metric.params});
+    const json_obj = AREA_EXCLUDE.length > 0
+        ? await observersFromObservations(metric)
+        : await inat_request("observations/observers", observer_fields, {...observer_params, ...metric.params});
     if (request_id !== observer_request_id) return; // a newer toggle superseded this request
 
     if (!json_obj || json_obj.results.length === 0) {

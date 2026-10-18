@@ -26,6 +26,9 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # for areas.py, even under python -I
+from areas import all_observations, area_key, area_params, exclusions, read_spaces  # noqa: E402
+
 API = "https://api.inaturalist.org/v2/"
 USER_AGENT = "open-space-corridor trends cache (iNaturalist user: brettjackson)"
 MIN_INTERVAL = 1.0  # iNaturalist asks for about 1 request per second
@@ -48,14 +51,6 @@ def inat(path, **params):
         return json.load(resp)
 
 
-def read_spaces():
-    """The site's list of spaces from js/spaces.js, keyed by id."""
-    match = re.search(r"=\s*(\[.*\])\s*;?\s*$", SPACES_JS.read_text(), re.S)
-    if not match:
-        raise ValueError(f"couldn't find the SPACES list in {SPACES_JS}")
-    return {spc["id"]: spc for spc in json.loads(match.group(1))}
-
-
 def read_cache(path):
     if not path.exists():
         return None
@@ -76,15 +71,35 @@ def write_cache(path, cache):
     return True
 
 
+def cumulative_from_observations(space, this_year):
+    """Year-end running totals computed from individual observations (for spaces with exclusions)."""
+    dated = sorted((o for o in all_observations(space, USER_AGENT) if o.get("observed_on")), key=lambda o: o["observed_on"])
+    years = list(range(int(dated[0]["observed_on"][:4]), this_year)) if dated else []
+    totals = {"observations": {}, "species": {}, "observers": {}}
+    taxa, users, i = set(), set(), 0
+    for y in years:
+        while i < len(dated) and int(dated[i]["observed_on"][:4]) <= y:
+            taxon = dated[i].get("taxon") or {}
+            if taxon.get("rank_level", 100) <= 10:  # species-level, matching js/area.js
+                taxa.add(taxon["id"])
+            if (dated[i].get("user") or {}).get("login"):
+                users.add(dated[i]["user"]["login"])
+            i += 1
+        totals["observations"][str(y)] = i
+        totals["species"][str(y)] = len(taxa)
+        totals["observers"][str(y)] = len(users)
+    return years, totals
+
+
 def update_space(space, full, refresh_years, bbox=None):
-    place_id = space["place_id"]
-    area = bbox or {"place_id": place_id}  # what to count observations in
+    place_id = space.get("place_id")
+    area = bbox or area_params(space)  # what to count observations in
     space_dir = SPACES_DIR / space["id"]
     space_dir.mkdir(exist_ok=True)
     cache_path = space_dir / "trends_cache.js"
     old = None if full or bbox else read_cache(cache_path)
-    if old and old.get("place_id") != place_id:
-        print(f"  PLACE_ID changed ({old.get('place_id')} -> {place_id}); rebuilding")
+    if old and (old["area_key"] != area_key(space) if "area_key" in old else old.get("place_id") != place_id or space.get("bbox")):
+        print("  the space's area changed; rebuilding")
         old = None
     if old and not old.get("cumulative"):
         print("  cache is in the old per-year format; rebuilding")
@@ -93,6 +108,20 @@ def update_space(space, full, refresh_years, bbox=None):
         print("  cache is a bounding-box stand-in; rebuilding from the place")
         old = None
     this_year = datetime.date.today().year
+
+    # Excluded boxes can't be subtracted from the API's distinct counts, so count observation by observation
+    if exclusions(space) and not bbox:
+        years, totals = cumulative_from_observations(space, this_year)
+        if not years:
+            print("  no completed years with observations; skipping (any existing cache is left as is)")
+            return
+        cache = {"place_id": place_id, "area_key": area_key(space), "updated": datetime.date.today().isoformat(),
+                 "cumulative": True, **totals}
+        if write_cache(cache_path, cache):
+            print(f"  wrote {cache_path.relative_to(SPACES_DIR.parent)} ({years[0]}-{years[-1]}, from individual observations)")
+        else:
+            print("  unchanged")
+        return
 
     # Observations: one histogram request covers every year; the running sum is cumulative
     hist = inat("observations/histogram", **area, interval="year", date_field="observed")
@@ -108,6 +137,7 @@ def update_space(space, full, refresh_years, bbox=None):
 
     cache = {
         "place_id": place_id,
+        "area_key": area_key(space),
         "updated": datetime.date.today().isoformat(),
         "cumulative": True,
         "observations": {str(y): observations.get(y, 0) for y in years},
@@ -151,7 +181,7 @@ def main():
         if len(bbox) != 4:
             parser.error("--bbox is nelat,nelng,swlat,swlng")
 
-    spaces = read_spaces()
+    spaces = {spc["id"]: spc for spc in read_spaces()}
     names = args.spaces or list(spaces)
     for name in names:
         print(name)

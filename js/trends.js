@@ -1,11 +1,11 @@
-// Cumulative trends at PLACE_ID: total observations, and distinct species and observers,
+// Cumulative trends in the space's area: total observations, and distinct species and observers,
 // as of the end of each year. Completed years come from the space's trends_cache.js
 // (built by scripts/update_trends_cache.py); only years it doesn't cover are fetched live.
 // The current year's value is just today's all-time total, so a fresh cache costs one
 // request per metric.
 const trend_params = {
     "verifiable" : true,
-    "place_id" : PLACE_ID,
+    ...AREA_PARAMS,
 };
 const trend_metrics = {
     observations: { singular: "observation", plural: "observations", path: "observations" },
@@ -31,7 +31,12 @@ let trend_focus = -1;          // index of the year under the crosshair
 const compact = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 });
 
 // Seed from the static cache when the space has one
-const trend_cache = typeof TRENDS_CACHE !== "undefined" && TRENDS_CACHE.cumulative && TRENDS_CACHE.place_id === PLACE_ID ? TRENDS_CACHE : null;
+// Seed from the static cache when it was built for this same area (older caches only record place_id)
+function cacheMatchesArea(cache) {
+    if (cache.area_key) return cache.area_key === AREA_KEY;
+    return !SPACE.bbox && AREA_EXCLUDE.length === 0 && cache.place_id === PLACE_ID;
+}
+const trend_cache = typeof TRENDS_CACHE !== "undefined" && TRENDS_CACHE.cumulative && cacheMatchesArea(TRENDS_CACHE) ? TRENDS_CACHE : null;
 // A bounding-box stand-in cache (place not indexed yet) counts the same box live
 if (trend_cache && trend_cache.bbox) {
     delete trend_params["place_id"];
@@ -193,8 +198,38 @@ function renderTable(values) {
     trend_table.replaceChildren(head, ...rows);
 }
 
+// With excluded boxes, every year's totals come from the area's individual observations,
+// since distinct species and observers can't be subtracted from the API's counts
+async function loadFromObservations() {
+    const all = await allAreaObservations();
+    if (!all) return false;
+    const dated = all.filter((obs) => obs.observed_on).sort((a, b) => a.observed_on.localeCompare(b.observed_on));
+    if (dated.length === 0) return true;
+    if (trend_years.length === 0) {
+        for (let y = parseInt(dated[0].observed_on, 10); y <= this_year; y++) trend_years.push(y);
+    }
+    Object.keys(trend_metrics).forEach((m) => { trend_data[m] = trend_data[m] || {}; });
+    const taxa = new Set(), users = new Set();
+    let i = 0;
+    trend_years.forEach((year) => {
+        while (i < dated.length && parseInt(dated[i].observed_on, 10) <= year) {
+            if (isSpeciesLevel(dated[i].taxon)) taxa.add(dated[i].taxon.id);
+            if (dated[i].user?.login) users.add(dated[i].user.login);
+            i++;
+        }
+        trend_data.observations[year] = i;
+        trend_data.species[year] = taxa.size;
+        trend_data.observers[year] = users.size;
+    });
+    return true;
+}
+
 // Without a cache, one histogram request gives the year range and cumulative observations
 async function loadYears() {
+    if (AREA_EXCLUDE.length > 0 && !trend_cache) {
+        await loadFromObservations();
+        return;
+    }
     if (trend_cache && trend_cache.observations && Object.keys(trend_cache.observations).length > 0) {
         const first = Math.min(...Object.keys(trend_cache.observations).map(Number));
         for (let y = first; y <= this_year; y++) trend_years.push(y);
@@ -217,6 +252,7 @@ async function loadYears() {
 // Fetch each missing year's cumulative count (observed up to Dec 31; no limit for this year).
 // Stops early if the toggle changes; years already fetched are kept for next time.
 async function loadMissing(metric, request_id) {
+    if (AREA_EXCLUDE.length > 0) return loadFromObservations();
     const counts = trend_data[metric] || (trend_data[metric] = {});
     const missing = trend_years.filter((y) => !(y in counts));
     for (const [n, year] of missing.entries()) {

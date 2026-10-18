@@ -6,13 +6,14 @@ const resp_params = {
         "login" : true,
         "icon_url" : true
     },
+    "geojson" : true,
     "observation_photos" : "all"
 };
 const params = {
     "verifiable" : true,
     "order_by" : "observed_on",
     "order" : "desc",
-    "place_id" : PLACE_ID,
+    ...AREA_PARAMS,
     "per_page" : 80,
 };
 const ROW_COUNT = 2;
@@ -117,7 +118,7 @@ async function loadMore() {
         done = true; // stop paging if the API runs dry or errors
     } else {
         page += 1;
-        json_obj.results.filter((obs) => mainPhoto(obs)?.url).forEach(addTile);
+        json_obj.results.filter((obs) => mainPhoto(obs)?.url && !isExcluded(obs)).forEach(addTile);
         if (page * params.per_page >= json_obj.total_results) done = true;
     }
     loading = false;

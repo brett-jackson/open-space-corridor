@@ -23,7 +23,11 @@ import re
 import time
 import urllib.parse
 import urllib.request
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # for areas.py, even under python -I
+from areas import all_observations, box_params, exclusions  # noqa: E402
 
 API = "https://api.inaturalist.org/v1/observations/species_counts"
 USER_AGENT = "open-space-corridor featured species (iNaturalist user: brettjackson)"
@@ -57,11 +61,27 @@ def read_js_object(path, pattern):
 
 
 def area_for(space):
-    """The space's place, or the bounding box its trends cache stands in with."""
+    """The space's own bounding box, its place, or the box its trends cache stands in with."""
+    if space.get("bbox"):
+        return box_params(space["bbox"]), "bounding box"
     cache = read_js_object(ROOT / "spaces" / space["id"] / "trends_cache.js", r"=\s*(\{.*\})\s*;?\s*$")
     if cache and cache.get("bbox") and cache.get("place_id") == space["place_id"]:
-        return cache["bbox"], "bounding box"
+        return cache["bbox"], "stand-in bounding box"
     return {"place_id": space["place_id"]}, f"place {space['place_id']}"
+
+
+def counts_from_observations(space, area):
+    """Species and Research Grade counts from individual observations, skipping excluded boxes."""
+    counts, research = {}, {}
+    for obs in all_observations(space, USER_AGENT, area):
+        taxon = obs.get("taxon") or {}
+        if taxon.get("rank_level", 100) > 10:  # species and finer only
+            continue
+        n, _ = counts.get(taxon["id"], (0, taxon))
+        counts[taxon["id"]] = (n + 1, taxon)
+        if obs.get("quality_grade") == "research":
+            research[taxon["id"]] = research.get(taxon["id"], 0) + 1
+    return counts, research
 
 
 def species_counts(area):
@@ -117,9 +137,13 @@ def main():
     research = {}  # space -> taxon id -> Research Grade observation count
     for spc in spaces:
         area, label = area_for(spc)
-        counts = species_counts(area)
+        if exclusions(spc):
+            counts, research[spc["id"]] = counts_from_observations(spc, area)
+            label += f", minus {len(exclusions(spc))} excluded area(s)"
+        else:
+            counts = species_counts(area)
+            research[spc["id"]] = {t: v[0] for t, v in species_counts({**area, "quality_grade": "research"}).items()}
         by_space[spc["id"]] = {t: v for t, v in counts.items() if t not in introduced}
-        research[spc["id"]] = {t: v[0] for t, v in species_counts({**area, "quality_grade": "research"}).items()}
         print(f"{spc['id']}: {len(by_space[spc['id']])} native or unknown-status species of {len(counts)} ({label})")
 
     # Only spaces with any observations take part, so an empty space doesn't inflate idf

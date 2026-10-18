@@ -1,6 +1,8 @@
 // Every open space on the site. `id` is its folder under spaces/ (image, trends_cache.js)
 // and its page URL: space.html?id=<id>. `place_id` is the iNaturalist place;
-// `location` is its [lat, lng], which arranges the landing page cards by direction.
+// `location` is its [lat, lng], where its marker sits on the landing page map.
+// Instead of `place_id`, a space can give `bbox`: two opposite corners, [[lat, lng], [lat, lng]],
+// and either kind can list `exclude`: boxes in the same format whose observations are ignored.
 window.SPACES = [
   {
     "id": "broomfield",
@@ -60,6 +62,39 @@ window.SPACES = [
     "location": [
       39.9538,
       -105.0554
+    ]
+  },
+  {
+    "id": "the-field",
+    "title": "The Field Open Space",
+    "subtitle": "",
+    "bbox": [
+      [
+        39.92883528272712,
+        -105.0624834592788
+      ],
+      [
+        39.9217231629372,
+        -105.07171042577862
+      ]
+    ],
+    "exclude": [
+      [
+        [
+          39.92378866149953,
+          -105.07077148513481
+        ],
+        [
+          39.9217560756465,
+          -105.07162459509014
+        ]
+      ]
+    ],
+    "description": "",
+    "image": "",
+    "location": [
+      39.9253,
+      -105.0671
     ]
   }
 ];
