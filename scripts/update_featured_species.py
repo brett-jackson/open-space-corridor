@@ -10,7 +10,9 @@ Spaces are the documents and species are the terms:
 So a species seen in every space scores 0, and one seen often in only one space ranks
 highest. Only species-level (and finer) identifications count, from verifiable
 observations, and species iNaturalist lists as introduced in Colorado are left out
-(native and unknown-status species stay). A space whose trends cache is a bounding-box stand-in (its place isn't
+(native and unknown-status species stay). To be featured, a species needs at least
+MIN_OBSERVATIONS observations in the space, or at least one Research Grade one there;
+every species still counts toward df, so the filter doesn't change what's unique. A space whose trends cache is a bounding-box stand-in (its place isn't
 indexed yet) is counted over that same box.
 
     python3 scripts/update_featured_species.py
@@ -28,6 +30,7 @@ USER_AGENT = "open-space-corridor featured species (iNaturalist user: brettjacks
 MIN_INTERVAL = 1.0  # iNaturalist asks for about 1 request per second
 PER_PAGE = 500
 TOP_N = 10
+MIN_OBSERVATIONS = 3  # fewer is fine if any observation is Research Grade
 REFERENCE_PLACE = 34  # Colorado: where establishment means (native vs. introduced) are judged
 ROOT = Path(__file__).resolve().parent.parent
 SPACES_JS = ROOT / "js" / "spaces.js"
@@ -111,10 +114,12 @@ def main():
     print(f"{len(introduced)} introduced species around the corridor (excluded)")
 
     by_space = {}
+    research = {}  # space -> taxon id -> Research Grade observation count
     for spc in spaces:
         area, label = area_for(spc)
         counts = species_counts(area)
         by_space[spc["id"]] = {t: v for t, v in counts.items() if t not in introduced}
+        research[spc["id"]] = {t: v[0] for t, v in species_counts({**area, "quality_grade": "research"}).items()}
         print(f"{spc['id']}: {len(by_space[spc['id']])} native or unknown-status species of {len(counts)} ({label})")
 
     # Only spaces with any observations take part, so an empty space doesn't inflate idf
@@ -129,6 +134,8 @@ def main():
     for sid in active:
         scored = []
         for taxon_id, (count, taxon) in by_space[sid].items():
+            if count < MIN_OBSERVATIONS and not research[sid].get(taxon_id):
+                continue  # too few sightings to feature, and none confirmed
             idf = math.log(n / df[taxon_id])
             score = math.log1p(count) * idf
             if score > 0:
@@ -144,6 +151,7 @@ def main():
                 "photo": photo.get("square_url") or "",
                 "attribution": photo.get("attribution") or "",
                 "count": count,
+                "research_grade": research[sid].get(taxon["id"], 0),
                 "spaces": df[taxon["id"]],
                 "score": round(score, 4),
             })

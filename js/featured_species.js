@@ -11,6 +11,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/7688931/square.jpg",
     "attribution": "(c) Meghan Cassidy, some rights reserved (CC BY-SA), uploaded by Meghan Cassidy",
     "count": 26,
+    "research_grade": 26,
     "spaces": 1,
     "score": 5.3044
    },
@@ -21,6 +22,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/239334744/square.jpg",
     "attribution": "(c) Thilina Hettiarachchi, some rights reserved (CC BY-NC), uploaded by Thilina Hettiarachchi",
     "count": 14,
+    "research_grade": 2,
     "spaces": 1,
     "score": 4.3584
    },
@@ -31,6 +33,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/2048760/square.jpg",
     "attribution": "(c) Denis Doucet, some rights reserved (CC BY-NC), uploaded by Denis Doucet",
     "count": 11,
+    "research_grade": 11,
     "spaces": 1,
     "score": 3.9993
    },
@@ -41,6 +44,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/4580/square.jpg",
     "attribution": "(c) Carol Jacobs-Carre, some rights reserved (CC BY-NC-ND)",
     "count": 10,
+    "research_grade": 10,
     "spaces": 1,
     "score": 3.8593
    },
@@ -51,6 +55,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/1456982/square.JPG",
     "attribution": "(c) smwhite, some rights reserved (CC BY-NC), uploaded by smwhite",
     "count": 8,
+    "research_grade": 2,
     "spaces": 1,
     "score": 3.5363
    },
@@ -61,6 +66,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/222915526/square.jpeg",
     "attribution": "(c) Eric Cleveland, some rights reserved (CC BY-NC), uploaded by Eric Cleveland",
     "count": 7,
+    "research_grade": 1,
     "spaces": 1,
     "score": 3.3467
    },
@@ -71,6 +77,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/22786993/square.jpeg",
     "attribution": "(c) rayrob, some rights reserved (CC BY-NC), uploaded by rayrob",
     "count": 7,
+    "research_grade": 0,
     "spaces": 1,
     "score": 3.3467
    },
@@ -81,6 +88,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/209755556/square.jpg",
     "attribution": "(c) Thomas Barbin, some rights reserved (CC BY-NC), uploaded by Thomas Barbin",
     "count": 6,
+    "research_grade": 4,
     "spaces": 1,
     "score": 3.1318
    },
@@ -91,6 +99,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/2023821/square.jpg",
     "attribution": "(c) JerryFriedman, some rights reserved (CC BY-SA)",
     "count": 5,
+    "research_grade": 2,
     "spaces": 1,
     "score": 2.8837
    },
@@ -101,6 +110,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/55913251/square.jpg",
     "attribution": "(c) Marshal Hedin, some rights reserved (CC BY-NC-SA), uploaded by Marshal Hedin",
     "count": 5,
+    "research_grade": 5,
     "spaces": 1,
     "score": 2.8837
    }
@@ -113,6 +123,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/14549085/square.jpg",
     "attribution": "(c) Paul G. Johnson, some rights reserved (CC BY-NC-SA), uploaded by Paul G. Johnson",
     "count": 24,
+    "research_grade": 24,
     "spaces": 1,
     "score": 5.1806
    },
@@ -123,6 +134,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://static.inaturalist.org/photos/22735453/square.jpg",
     "attribution": "(c) richard, all rights reserved, uploaded by richard",
     "count": 6,
+    "research_grade": 0,
     "spaces": 1,
     "score": 3.1318
    },
@@ -133,6 +145,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/5315/square.jpg",
     "attribution": "(c) Anita, some rights reserved (CC BY-NC)",
     "count": 6,
+    "research_grade": 2,
     "spaces": 1,
     "score": 3.1318
    },
@@ -143,6 +156,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://static.inaturalist.org/photos/29485872/square.jpg",
     "attribution": "(c) maggieschedl, all rights reserved",
     "count": 25,
+    "research_grade": 25,
     "spaces": 2,
     "score": 2.9854
    },
@@ -153,6 +167,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/14428/square.jpg",
     "attribution": "(c) Tom Hilton, some rights reserved (CC BY), uploaded by Tom Hilton",
     "count": 5,
+    "research_grade": 3,
     "spaces": 1,
     "score": 2.8837
    },
@@ -163,6 +178,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/27372454/square.jpeg",
     "attribution": "(c) Dean Hester, some rights reserved (CC BY-NC-ND), uploaded by Dean Hester",
     "count": 5,
+    "research_grade": 5,
     "spaces": 1,
     "score": 2.8837
    },
@@ -173,6 +189,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://static.inaturalist.org/photos/107527504/square.jpeg",
     "attribution": "(c) Juan Miguel Artigas Azas, all rights reserved, uploaded by Juan Miguel Artigas Azas",
     "count": 18,
+    "research_grade": 18,
     "spaces": 2,
     "score": 2.698
    },
@@ -183,6 +200,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/344545/square.JPG",
     "attribution": "(c) Belinda Lo, some rights reserved (CC BY-NC-SA), uploaded by Belinda Lo",
     "count": 17,
+    "research_grade": 11,
     "spaces": 2,
     "score": 2.6484
    },
@@ -193,6 +211,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://static.inaturalist.org/photos/209272559/square.jpg",
     "attribution": "(c) rnicoletti0101, all rights reserved",
     "count": 4,
+    "research_grade": 0,
     "spaces": 1,
     "score": 2.5903
    },
@@ -203,6 +222,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://static.inaturalist.org/photos/18269648/square.jpg",
     "attribution": "(c) i_fox, all rights reserved, uploaded by i_fox",
     "count": 4,
+    "research_grade": 3,
     "spaces": 1,
     "score": 2.5903
    }
@@ -215,6 +235,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://static.inaturalist.org/photos/39823348/square.jpg",
     "attribution": "(c) mattbuckingham, all rights reserved, uploaded by mattbuckingham",
     "count": 14,
+    "research_grade": 14,
     "spaces": 1,
     "score": 4.3584
    },
@@ -225,6 +246,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/95736689/square.jpg",
     "attribution": "(c) Ad Konings, some rights reserved (CC BY-NC), uploaded by Ad Konings",
     "count": 5,
+    "research_grade": 5,
     "spaces": 1,
     "score": 2.8837
    },
@@ -235,6 +257,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/17877492/square.jpeg",
     "attribution": "(c) Suzette Rogers, some rights reserved (CC BY-NC), uploaded by Suzette Rogers",
     "count": 4,
+    "research_grade": 1,
     "spaces": 1,
     "score": 2.5903
    },
@@ -245,6 +268,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://static.inaturalist.org/photos/378461220/square.jpg",
     "attribution": "(c) Nathan French, all rights reserved, uploaded by Nathan French",
     "count": 4,
+    "research_grade": 4,
     "spaces": 1,
     "score": 2.5903
    },
@@ -255,6 +279,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/252481813/square.jpg",
     "attribution": "(c) jim22lawrence, some rights reserved (CC BY-NC)",
     "count": 4,
+    "research_grade": 4,
     "spaces": 1,
     "score": 2.5903
    },
@@ -265,6 +290,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/5329132/square.jpeg",
     "attribution": "(c) psweet, some rights reserved (CC BY-SA), uploaded by psweet",
     "count": 3,
+    "research_grade": 3,
     "spaces": 1,
     "score": 2.2312
    },
@@ -275,6 +301,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/69570446/square.jpg",
     "attribution": "(c) Paul Cools, some rights reserved (CC BY-NC), uploaded by Paul Cools",
     "count": 3,
+    "research_grade": 2,
     "spaces": 1,
     "score": 2.2312
    },
@@ -285,6 +312,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://static.inaturalist.org/photos/31458727/square.jpg",
     "attribution": "(c) elizlooks, all rights reserved",
     "count": 10,
+    "research_grade": 10,
     "spaces": 2,
     "score": 2.1972
    },
@@ -295,6 +323,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://static.inaturalist.org/photos/19393073/square.jpg",
     "attribution": "(c) mattbuckingham, all rights reserved, uploaded by mattbuckingham",
     "count": 10,
+    "research_grade": 10,
     "spaces": 2,
     "score": 2.1972
    },
@@ -305,21 +334,12 @@ window.FEATURED_SPECIES = {
     "photo": "https://static.inaturalist.org/photos/113612953/square.jpeg",
     "attribution": "(c) arachphotobia, all rights reserved, uploaded by arachphotobia",
     "count": 9,
+    "research_grade": 9,
     "spaces": 2,
     "score": 2.1098
    }
   ],
   "markel": [
-   {
-    "taxon_id": 60997,
-    "name": "Ceratophyllum demersum",
-    "common_name": "coontail",
-    "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/193786804/square.jpeg",
-    "attribution": "(c) chiuluan, some rights reserved (CC BY), uploaded by chiuluan",
-    "count": 1,
-    "spaces": 1,
-    "score": 1.1156
-   },
    {
     "taxon_id": 121437,
     "name": "Dolomedes triton",
@@ -327,6 +347,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/195540078/square.jpg",
     "attribution": "(c) Thomas Shahan, some rights reserved (CC BY-NC), uploaded by Thomas Shahan",
     "count": 1,
+    "research_grade": 1,
     "spaces": 1,
     "score": 1.1156
    },
@@ -337,6 +358,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/136898320/square.jpg",
     "attribution": "(c) fiddler44, some rights reserved (CC BY-NC)",
     "count": 1,
+    "research_grade": 1,
     "spaces": 1,
     "score": 1.1156
    },
@@ -347,6 +369,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/157824424/square.jpg",
     "attribution": "(c) Sandy Wolkenberg, some rights reserved (CC BY), uploaded by Sandy Wolkenberg",
     "count": 1,
+    "research_grade": 1,
     "spaces": 2,
     "score": 0.6351
    }
@@ -359,6 +382,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/431958263/square.jpg",
     "attribution": "(c) Ed Zaborski, some rights reserved (CC BY-NC), uploaded by Ed Zaborski",
     "count": 2,
+    "research_grade": 2,
     "spaces": 1,
     "score": 1.7681
    },
@@ -369,6 +393,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/341177034/square.jpeg",
     "attribution": "(c) Kyle Campbell, some rights reserved (CC BY-ND), uploaded by Kyle Campbell",
     "count": 2,
+    "research_grade": 1,
     "spaces": 1,
     "score": 1.7681
    },
@@ -379,16 +404,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/151926800/square.jpg",
     "attribution": "(c) Steven Mlodinow, some rights reserved (CC BY-NC), uploaded by Steven Mlodinow",
     "count": 1,
-    "spaces": 1,
-    "score": 1.1156
-   },
-   {
-    "taxon_id": 772932,
-    "name": "Sporobolus compositus",
-    "common_name": "Tall Dropseed",
-    "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/98472655/square.jpg",
-    "attribution": "(c) Aidan Campos, some rights reserved (CC BY-NC), uploaded by Aidan Campos",
-    "count": 1,
+    "research_grade": 1,
     "spaces": 1,
     "score": 1.1156
    },
@@ -399,6 +415,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://static.inaturalist.org/photos/99497131/square.jpg",
     "attribution": "(c) DinGo OcTavious, all rights reserved, uploaded by DinGo OcTavious",
     "count": 1,
+    "research_grade": 1,
     "spaces": 3,
     "score": 0.3541
    },
@@ -409,6 +426,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/9651864/square.jpeg",
     "attribution": "(c) James Bailey, some rights reserved (CC BY-NC), uploaded by James Bailey",
     "count": 1,
+    "research_grade": 1,
     "spaces": 3,
     "score": 0.3541
    }
