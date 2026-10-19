@@ -18,8 +18,11 @@
     </header>
     <div class="landing-body" id="landing-body">
       <div class="space-map" id="space-map" role="region" aria-label="Map of open spaces"></div>
-      <aside class="space-panel" id="space-panel" aria-live="polite">
-        <p class="panel-hint">Hover over an open space to see its signature species.</p>
+      <aside class="space-panel" id="space-panel">
+        <div class="panel-tabs" id="panel-tabs" role="tablist" aria-label="Map views"></div>
+        <div class="panel-content" id="panel-content" role="tabpanel" aria-live="polite">
+          <p class="panel-hint">Hover over an open space to see its signature species.</p>
+        </div>
       </aside>
     </div>
     <section class="grid" id="grid" aria-label="Open spaces"></section>
@@ -29,10 +32,12 @@
   <script src="js/boundaries.js"></script>
   <script src="js/featured_species.js"></script>
   <script src="js/names.js"></script>
+  <script src="js/species_network.js"></script>
+  <script src="js/network.js"></script>
   <script>
     const grid = document.getElementById("grid");
     const map_el = document.getElementById("space-map");
-    const panel = document.getElementById("space-panel");
+    const panel = document.getElementById("panel-content");
     const spaces = window.SPACES || [];
     const located = spaces.filter((spc) => Array.isArray(spc.location));
 
@@ -116,9 +121,12 @@
     // Side panel: the hovered space's signature species, its most distinctive by TF-IDF (js/featured_species.js)
     const featured = window.FEATURED_SPECIES || { by_space: {} };
     let panel_space = null;
+    let last_space = null;       // the last space hovered, shown when returning to Signature Species
+    let active_tab = "signature";
 
     function showPanel(spc) {
-      if (panel_space === spc.id) return;
+      last_space = spc;
+      if (active_tab !== "signature" || panel_space === spc.id) return;
       panel_space = spc.id;
 
       const title = document.createElement("h2");
@@ -206,6 +214,150 @@
       panel.scrollTop = 0;
     }
 
+    // Network tabs: one per species group in js/species_network.js
+    const network_data = window.SPECIES_NETWORK || { groups: [], species: {}, by_space: {} };
+    let network = null; // created once the map exists
+
+    function groupLabel(group_id) {
+      return network_data.groups.find((g) => g.id === group_id)?.label || group_id;
+    }
+
+    function speciesItem(id) {
+      const sp = network_data.species[id] || { name: "Taxon " + id, common_name: "", photo: "" };
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.href = "https://www.inaturalist.org/taxa/" + id;
+      a.target = "_blank";
+      a.rel = "noopener";
+      if (sp.photo) {
+        const img = document.createElement("img");
+        img.src = sp.photo;
+        img.alt = "";
+        img.loading = "lazy";
+        a.appendChild(img);
+      } else {
+        const ph = document.createElement("span");
+        ph.className = "placeholder";
+        a.appendChild(ph);
+      }
+      const name = document.createElement("span");
+      name.textContent = sp.common_name ? formatCommonName(sp.common_name) : sp.name;
+      if (!sp.common_name) name.classList.add("scientific");
+      a.appendChild(name);
+      li.appendChild(a);
+      return li;
+    }
+
+    function sortedSpecies(ids) {
+      const label = (id) => {
+        const sp = network_data.species[id];
+        return sp ? (sp.common_name || sp.name).toLowerCase() : "";
+      };
+      return [...ids].sort((x, y) => label(x).localeCompare(label(y)));
+    }
+
+    function panelHeading(text) {
+      const h = document.createElement("h3");
+      h.className = "panel-heading";
+      h.textContent = text;
+      return h;
+    }
+
+    function showGroupIntro(group_id) {
+      const label = groupLabel(group_id);
+      const intro = document.createElement("p");
+      intro.className = "panel-lede";
+      intro.textContent = `Each arrow starts as wide as one space's list of native ${label.toLowerCase()} and ends as wide as the part of that list also seen at the other space. Click an arrow to compare.`;
+      const ol = document.createElement("ol");
+      ol.className = "network-counts";
+      located
+        .map((spc) => ({ spc, n: (network_data.by_space[spc.id]?.[group_id] || []).length }))
+        .sort((x, y) => y.n - x.n)
+        .forEach(({ spc, n }) => {
+          const li = document.createElement("li");
+          const name = document.createElement("span");
+          name.textContent = spc.title;
+          const count = document.createElement("span");
+          count.className = "network-count";
+          count.textContent = n === 1 ? "1 species" : `${n} species`;
+          li.append(name, count);
+          ol.appendChild(li);
+        });
+      panel.replaceChildren(panelHeading("Native " + label), intro, ol);
+      panel.scrollTop = 0;
+    }
+
+    // Clicking an arrow from A to B: A's species, and the subset also seen at B
+    function showComparison(from, to, group_id) {
+      if (active_tab !== group_id) return;
+      const at_from = network_data.by_space[from.id]?.[group_id] || [];
+      const at_to = new Set(network_data.by_space[to.id]?.[group_id] || []);
+      const shared = at_from.filter((id) => at_to.has(id));
+      const label = groupLabel(group_id).toLowerCase();
+
+      const back = document.createElement("button");
+      back.type = "button";
+      back.className = "panel-back";
+      back.textContent = "← All spaces";
+      back.addEventListener("click", () => showGroupIntro(group_id));
+
+      const title = document.createElement("h2");
+      title.className = "panel-title panel-title-small";
+      title.textContent = `${from.title} → ${to.title}`;
+      const lede = document.createElement("p");
+      lede.className = "panel-lede";
+      lede.textContent = `${shared.length} of ${from.title}'s ${at_from.length} native ${label} species ` +
+        `(${Math.round((shared.length / at_from.length) * 100)}%) have also been seen at ${to.title}.`;
+
+      const columns = document.createElement("div");
+      columns.className = "network-columns";
+      [[`At ${from.title}`, at_from], [`Also at ${to.title}`, shared]].forEach(([heading, ids]) => {
+        const col = document.createElement("div");
+        const h = document.createElement("h4");
+        h.textContent = `${heading} (${ids.length})`;
+        const ul = document.createElement("ul");
+        ul.className = "network-species";
+        sortedSpecies(ids).forEach((id) => ul.appendChild(speciesItem(id)));
+        col.append(h, ul);
+        columns.appendChild(col);
+      });
+      panel.replaceChildren(back, title, lede, columns);
+      panel.scrollTop = 0;
+    }
+
+    function selectTab(tab_id) {
+      active_tab = tab_id;
+      document.querySelectorAll("#panel-tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === tab_id)));
+      if (tab_id === "signature") {
+        network?.hide();
+        panel_space = null;
+        if (last_space) showPanel(last_space);
+        else {
+          const hint = document.createElement("p");
+          hint.className = "panel-hint";
+          hint.textContent = "Hover over an open space to see its signature species.";
+          panel.replaceChildren(hint);
+        }
+      } else {
+        network?.show(tab_id);
+        showGroupIntro(tab_id);
+      }
+    }
+
+    function buildTabs() {
+      const tabs = document.getElementById("panel-tabs");
+      [{ id: "signature", label: "Signature Species" }, ...network_data.groups].forEach((t) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.role = "tab";
+        b.dataset.tab = t.id;
+        b.textContent = t.label;
+        b.setAttribute("aria-selected", String(t.id === "signature"));
+        b.addEventListener("click", () => { if (t.id !== active_tab) selectTab(t.id); });
+        tabs.appendChild(b);
+      });
+    }
+
     if (spaces.length === 0) {
       const msg = document.createElement("p");
       msg.className = "empty";
@@ -291,6 +443,12 @@
       });
       fit();
       window.addEventListener("resize", fit);
+
+      // Network overlays (js/network.js), one per tab after Signature Species
+      if (typeof createNetwork === "function" && network_data.groups.length > 0) {
+        network = createNetwork(map, located, network_data, showComparison);
+      }
+      buildTabs();
     }
   </script>
 </body>

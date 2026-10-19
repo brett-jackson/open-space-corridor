@@ -168,9 +168,12 @@ code { background: var(--outline); padding: 2px 6px; border-radius: 4px; }
     gap: 16px;
 }
 .landing .space-map { height: 100%; min-height: 0; }
+/* The tab bar is a fixed header; only the content below it scrolls */
 .space-panel {
-    overflow-y: auto;
-    padding: 20px 18px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
     border: 1px solid var(--outline);
     border-radius: var(--radius);
     background: var(--bg-box);
@@ -217,11 +220,73 @@ code { background: var(--outline); padding: 2px 6px; border-radius: 4px; }
 .featured-meta { color: var(--text-muted); font-size: 0.75rem; margin-top: 2px; }
 .panel-lede { margin: -2px 0 12px; color: var(--text-muted); font-size: 0.85rem; line-height: 1.4; }
 .panel-note { margin: 16px 0 0; color: var(--text-muted); font-size: 0.75rem; line-height: 1.45; }
+/* Panel tabs: Signature Species plus one per network overlay */
+.panel-tabs {
+    flex: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 12px 14px 10px;
+    border-bottom: 1px solid var(--outline);
+}
+.panel-content { flex: 1; min-height: 0; overflow-y: auto; padding: 20px 18px; }
+.panel-content > :first-child { margin-top: 0; } /* the content's padding sets the gap below the tabs */
+.panel-tabs button {
+    padding: 5px 11px;
+    border: 1px solid var(--outline);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+}
+.panel-tabs button:hover { color: var(--text); }
+.panel-tabs button[aria-selected="true"] { background: var(--text); border-color: var(--text); color: var(--bg); }
+.panel-tabs button:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 2px; }
+
+/* Network overview and arrow comparison */
+.network-counts { list-style: none; margin: 0; padding: 0; font-size: 0.9rem; }
+.network-counts li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--outline); }
+.network-count { color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.panel-back {
+    margin: 0 0 10px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+.panel-back:hover { color: var(--hover-outline); }
+.panel-back:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 2px; border-radius: 4px; }
+.panel-title-small { font-size: 1.45rem; margin-bottom: 6px; }
+.network-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.network-columns h4 { margin: 0 0 6px; color: var(--text-muted); font-size: 0.72rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+.network-species { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.network-species a { display: flex; align-items: center; gap: 8px; padding: 3px; border-radius: 6px; color: inherit; text-decoration: none; font-size: 0.82rem; line-height: 1.25; }
+.network-species a:hover { background: rgba(255, 255, 255, 0.05); }
+.network-species a:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 1px; }
+.network-species img, .network-species .placeholder { flex: none; width: 28px; height: 28px; border-radius: 4px; object-fit: cover; background: var(--outline); }
+
+/* Network arrows on the map: one hue per group, outlined so they read over satellite imagery */
+.net-arrow { stroke: rgba(0, 0, 0, 0.55); stroke-width: 1; stroke-linejoin: round; fill-opacity: 0.78; cursor: pointer; transition: fill-opacity 0.15s ease; }
+.net-arrow:hover { fill-opacity: 1; stroke: #fff; }
+.net-bees { fill: #f5b83d; }
+.net-lepidoptera { fill: #c792ff; }
+.net-birds { fill: #5cc8ff; }
+.leaflet-tooltip.net-tooltip { background: var(--bg-box); border: 1px solid var(--outline); color: var(--text); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); }
+.leaflet-tooltip.net-tooltip::before { display: none; }
+
 @media (max-width: 800px) {
     .landing { height: auto; }
     .landing-body { grid-template-columns: minmax(0, 1fr); }
     .landing .space-map { height: 62vh; min-height: 360px; }
-    .space-panel { overflow: visible; }
+    .space-panel, .panel-content { overflow: visible; }
 }
 
 .space-map {
