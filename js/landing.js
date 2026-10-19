@@ -95,7 +95,7 @@ function spaceHeader(spc) {
         [tasks.pollinator_plants, (n) => `${n} pollinators need a flower named`],
     ].filter(([n]) => n > 0).sort((x, y) => y[0] - x[0]).slice(0, 2);
     if (phrases.length > 0) {
-        const help = el("a", "panel-help-link", "Help here: " + phrases.map(([n, say]) => say(n.toLocaleString())).join(" · ") + " →");
+        const help = el("a", "panel-help-link", "" + phrases.map(([n, say]) => say(n.toLocaleString())).join(" · ") + " →");
         help.href = helpHref(spc);
         parts.push(help);
     }

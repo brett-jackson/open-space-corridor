@@ -157,7 +157,7 @@ function effortLine(spc, group_id) {
     const { obs, low } = spaceEffort(NETWORK_DATA, spc.id, group_id);
     const p = el("p", "effort-line", `${n} native species · ${obs.toLocaleString()} observations`);
     if (low) {
-        const flag = el("a", "network-flag", "More observations needed · how to help →");
+        const flag = el("a", "network-flag", "More observations needed →");
         flag.href = helpHref(spc);
         p.appendChild(flag);
     }
