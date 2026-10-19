@@ -248,6 +248,98 @@ code { background: var(--outline); padding: 2px 6px; border-radius: 4px; }
 .panel-tabs button[aria-selected="true"] { background: var(--text); border-color: var(--text); color: var(--bg); }
 .panel-tabs button:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 2px; }
 
+/* Space summary: explore button and corridor connections (shared with space pages) */
+.panel-explore {
+    display: inline-block;
+    margin: 12px 0 2px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: var(--text);
+    color: var(--bg);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+.panel-explore:hover { background: var(--hover-outline); }
+.panel-explore:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 2px; }
+.connections, .connection-groups { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.connection {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 2px 12px;
+    padding: 8px 10px;
+    border: 1px solid var(--outline);
+    border-radius: 8px;
+    color: inherit;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+a.connection:hover { border-color: var(--net-color, var(--hover-outline)); background: rgba(255, 255, 255, 0.03); }
+a.connection:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 1px; }
+.connection.is-gap { border-style: dashed; color: var(--text-muted); }
+.connection-name { font-weight: 600; }
+.connection-detail { color: var(--text-muted); font-size: 0.8rem; text-align: right; }
+.connection-bar { grid-column: 1 / -1; height: 4px; margin-top: 4px; border-radius: 2px; background: linear-gradient(to right, var(--net-color) var(--pct), var(--outline) var(--pct)); }
+.connection-group { border-left: 3px solid var(--net-color); }
+.effort-line { margin: 0 0 12px; color: var(--text-muted); font-size: 0.85rem; }
+.effort-line .network-flag { display: block; }
+.network-count-row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 12px; padding: 6px 0; color: inherit; text-decoration: none; }
+.network-count-row:hover { color: var(--hover-outline); }
+.network-counts li { display: block; padding: 0; }
+.panel-title a { color: inherit; text-decoration: none; }
+.panel-title a:hover { color: var(--hover-outline); }
+
+/* The selected space's marker and outline stay highlighted */
+.map-marker > div.is-selected .map-card { border-color: var(--hover-outline); box-shadow: 0 0 0 3px rgba(125, 176, 255, 0.45), 0 3px 10px rgba(0, 0, 0, 0.45); }
+.space-boundary.selected { stroke: var(--hover-outline); stroke-width: 3; fill-opacity: 0.2; }
+
+/* Space pages: sidebar mini map of the corridor, and the connections section */
+.corridor-mini { margin: 0 0 22px; }
+.corridor-map { height: 170px; border: 1px solid var(--outline); border-radius: 8px; background: var(--bg-box); z-index: 0; }
+.corridor-mini figcaption { margin-top: 4px; color: var(--text-muted); font-size: 0.7rem; }
+.corridor-shape { stroke: #fff; stroke-width: 1.5; stroke-opacity: 0.7; fill: #fff; fill-opacity: 0.12; cursor: pointer; }
+.corridor-shape:hover { stroke: var(--hover-outline); stroke-opacity: 1; fill-opacity: 0.25; }
+.corridor-shape.is-here { stroke: var(--hover-outline); stroke-width: 2.5; stroke-opacity: 1; fill: var(--hover-outline); fill-opacity: 0.4; cursor: default; }
+.connections-block { margin-top: 22px; }
+.connections-heading { margin: 0 0 4px; padding-left: 10px; border-left: 3px solid var(--net-color); font-size: 1.05rem; }
+.connections-heading a { color: inherit; text-decoration: none; }
+.connections-heading a:hover { color: var(--hover-outline); }
+#corridor-connections .connections { max-width: 560px; }
+#signature-list .featured-species { max-width: 560px; }
+
+/* How to Help cards on space pages, and the landing summary's link to them */
+.help-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-top: 8px; }
+.help-card {
+    display: flex;
+    flex-direction: column;
+    padding: 18px 18px 16px;
+    border: 1px solid var(--outline);
+    border-radius: var(--radius);
+    background: var(--bg-box);
+}
+.help-card.is-survey { border-top: 3px solid var(--net-color); }
+.help-count { margin: 0 0 6px; color: var(--text-muted); font-size: 0.82rem; }
+.help-count strong { display: block; color: var(--text); font-size: 1.7rem; font-weight: 600; line-height: 1.15; }
+.help-card h3 { margin: 4px 0 8px; font-family: var(--font-display); font-size: 1.35rem; font-weight: 600; line-height: 1.2; }
+.help-text { margin: 0 0 8px; font-size: 0.9rem; }
+.help-how { margin: 0 0 14px; color: var(--text-muted); font-size: 0.8rem; }
+.help-action {
+    margin-top: auto;
+    align-self: flex-start;
+    padding: 7px 14px;
+    border: 1px solid var(--outline);
+    border-radius: 999px;
+    color: var(--text);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+.help-action:hover { border-color: var(--hover-outline); color: var(--hover-outline); }
+.help-action:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 2px; }
+.panel-help-link { display: block; margin: 10px 0 0; color: #f0c674; font-size: 0.85rem; text-decoration: none; }
+.panel-help-link:hover { text-decoration: underline; }
+
 /* Network overview and link comparison */
 .network-counts { list-style: none; margin: 0; padding: 0; font-size: 0.9rem; }
 .network-counts li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--outline); }
@@ -648,6 +740,7 @@ html { scroll-behavior: smooth; }
     .layout { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 16px; }
     .layout main { padding-top: 24px; }
     .space-subtitle { display: none; }
+    .corridor-mini { display: none; } /* the sidebar becomes a top bar; Connections still lists the neighbors */
     .sidebar {
         z-index: 10;
         max-height: none;
@@ -670,4 +763,15 @@ html { scroll-behavior: smooth; }
     .observer-avatar { width: min(128px, 26vw); height: min(128px, 26vw); font-size: 2.6rem; }
     .medal { width: 28px; height: 28px; font-size: 0.8rem; right: -8px; bottom: -8px; }
     .observer-count strong { font-size: 1.2rem; }
+}
+
+/* Touch screens have no hover: a tap selects the space and the panel shows it, so the
+   photo marker stays compact instead of expanding over its neighbors.
+   Last in the file so it overrides the hover rules above. */
+@media (hover: none) {
+    .map-card:hover, .map-card:focus-visible { width: 64px; transform: translateX(-50%); }
+    .leaflet-container .leaflet-marker-pane .map-card:hover img,
+    .leaflet-container .leaflet-marker-pane .map-card:focus-visible img,
+    .map-card:hover .placeholder, .map-card:focus-visible .placeholder { height: 60px; }
+    .map-card:hover .map-card-body, .map-card:focus-visible .map-card-body { max-height: 0; padding: 0 14px; opacity: 0; }
 }

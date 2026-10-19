@@ -14,8 +14,8 @@ Examples:
         "hover:.map-card >> nth=0" "shot:hovered.png" \\
         "click:#panel-tabs button[data-tab=birds]" "wait:1500" "shot:birds.png"
 
-Steps run in order: hover:<selector>, click:<selector>, clickat:<x>,<y> (a real mouse click
-at page coordinates), wait:<ms>, scroll:<selector> (into
+Steps run in order: hover:<selector>, click:<selector>, tap:<selector> (with --mobile),
+clickat:<x>,<y> (a real mouse click at page coordinates), wait:<ms>, scroll:<selector> (into
 view), eval:<javascript>, shot:<file.png> (viewport), fullshot:<file.png> (whole page) and
 element:<selector>=<file.png>. With no shot steps, one viewport screenshot is saved.
 Screenshots go to .screenshots/ unless a path with a folder is given.
@@ -58,13 +58,14 @@ def out_path(name):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("page", help='page path relative to the site root, e.g. index.html or "space.html?id=metzger"')
-    parser.add_argument("steps", nargs="*", help="hover:/click:/clickat:/wait:/scroll:/eval:/shot:/fullshot:/element: steps")
+    parser.add_argument("steps", nargs="*", help="hover:/click:/tap:/clickat:/wait:/scroll:/eval:/shot:/fullshot:/element: steps")
     parser.add_argument("--width", type=int, default=1440)
     parser.add_argument("--height", type=int, default=900)
     parser.add_argument("--scale", type=float, default=1, help="device pixel ratio (2 for a retina-like capture)")
     parser.add_argument("--settle", type=int, default=2500, help="ms to wait after load for tiles, fonts and API calls")
     parser.add_argument("--full-page", action="store_true", help="capture the whole page when no shot steps are given")
     parser.add_argument("--dark", action="store_true", help="emulate a dark color scheme")
+    parser.add_argument("--mobile", action="store_true", help="emulate a touch phone (no hover), for use with tap: steps")
     args = parser.parse_intermixed_args()  # options may come before, between or after the steps
 
     server = serve()
@@ -77,6 +78,8 @@ def main():
             viewport={"width": args.width, "height": args.height},
             device_scale_factor=args.scale,
             color_scheme="dark" if args.dark else "light",
+            has_touch=args.mobile,
+            is_mobile=args.mobile,
         )
         page.on("console", lambda msg: msg.type in ("error", "warning") and problems.append(f"console {msg.type}: {msg.text}"))
         page.on("pageerror", lambda err: problems.append(f"page error: {err}"))
@@ -93,6 +96,9 @@ def main():
                 page.wait_for_timeout(400)
             elif kind == "click":
                 page.click(value)
+                page.wait_for_timeout(400)
+            elif kind == "tap":
+                page.tap(value)
                 page.wait_for_timeout(400)
             elif kind == "clickat":
                 x, y = (float(v) for v in value.split(","))

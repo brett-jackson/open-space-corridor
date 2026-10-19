@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -16,9 +17,17 @@
       <a class="back" href="index.html">&larr; All open spaces</a>
       <h1 class="space-name" id="space-title">Open Space</h1>
       <p class="space-subtitle" id="space-subtitle"></p>
+      <figure class="corridor-mini">
+        <div class="corridor-map" id="corridor-map" role="img" aria-label="Map of the corridor's open spaces, with this one highlighted"></div>
+        <figcaption>The corridor · imagery © Esri</figcaption>
+      </figure>
       <nav class="section-nav" id="section-nav" aria-label="Sections"></nav>
     </aside>
     <main>
+      <section class="page-section" id="signature-species">
+        <h2>Signature Species</h2>
+        <div id="signature-list"></div>
+      </section>
       <section class="page-section" id="top-observers">
         <h2>Top Observers</h2>
         <div class="segmented" id="observer-metric" role="group" aria-label="Rank observers by">
@@ -53,6 +62,15 @@
           </details>
         </div>
       </section>
+      <section class="page-section" id="corridor-connections">
+        <h2>Corridor Connections</h2>
+        <div id="connections-body"></div>
+      </section>
+      <section class="page-section" id="how-to-help">
+        <h2>How to Help</h2>
+        <p class="panel-lede">Quick tasks on iNaturalist that make this space's picture more complete. Each opens a filtered list in a new tab.</p>
+        <div class="help-cards" id="help-cards"></div>
+      </section>
     </main>
   </div>
   <script src="js/spaces.js"></script>
@@ -83,6 +101,15 @@
         "js/site_viz.js",
         "spaces/" + SPACE.id + "/trends_cache.js", // optional; a missing cache just means more live requests
         "js/trends.js",
+        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js",
+        "js/boundaries.js",
+        "js/featured_species.js",
+        "js/species_network.js",
+        "js/network.js",
+        "js/panels.js",
+        "js/space_corridor.js",
+        "js/help_tasks.js",
+        "js/help.js",
         "js/sections.js",
       ].forEach((src) => {
         const script = document.createElement("script");
