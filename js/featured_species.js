@@ -376,17 +376,6 @@ window.FEATURED_SPECIES = {
   ],
   "wottge": [
    {
-    "taxon_id": 77596,
-    "name": "Juncus torreyi",
-    "common_name": "Torrey's rush",
-    "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/431958263/square.jpg",
-    "attribution": "(c) Ed Zaborski, some rights reserved (CC BY-NC), uploaded by Ed Zaborski",
-    "count": 2,
-    "research_grade": 2,
-    "spaces": 1,
-    "score": 2.1378
-   },
-   {
     "taxon_id": 78998,
     "name": "Schoenoplectus tabernaemontani",
     "common_name": "soft-stemmed bulrush",
@@ -409,6 +398,17 @@ window.FEATURED_SPECIES = {
     "score": 1.3488
    },
    {
+    "taxon_id": 77596,
+    "name": "Juncus torreyi",
+    "common_name": "Torrey's rush",
+    "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/431958263/square.jpg",
+    "attribution": "(c) Ed Zaborski, some rights reserved (CC BY-NC), uploaded by Ed Zaborski",
+    "count": 1,
+    "research_grade": 1,
+    "spaces": 1,
+    "score": 1.3488
+   },
+   {
     "taxon_id": 229683,
     "name": "Pyropyga nigricans",
     "common_name": "Dark Firefly",
@@ -418,17 +418,6 @@ window.FEATURED_SPECIES = {
     "research_grade": 1,
     "spaces": 3,
     "score": 0.5873
-   },
-   {
-    "taxon_id": 119533,
-    "name": "Phymata americana",
-    "common_name": "Jagged Ambush Bug",
-    "photo": "https://static.inaturalist.org/photos/99497131/square.jpg",
-    "attribution": "(c) DinGo OcTavious, all rights reserved, uploaded by DinGo OcTavious",
-    "count": 1,
-    "research_grade": 1,
-    "spaces": 4,
-    "score": 0.3879
    }
   ],
   "the-field": [
