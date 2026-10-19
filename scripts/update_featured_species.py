@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Rank each space's most distinctive species with TF-IDF and save them to js/featured_species.js.
 
+The landing page shows these as each space's "Signature Species".
+
 Spaces are the documents and species are the terms:
 
     tf  = log(1 + observations of the species in this space)

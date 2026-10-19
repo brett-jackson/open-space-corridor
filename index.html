@@ -19,7 +19,7 @@
     <div class="landing-body" id="landing-body">
       <div class="space-map" id="space-map" role="region" aria-label="Map of open spaces"></div>
       <aside class="space-panel" id="space-panel" aria-live="polite">
-        <p class="panel-hint">Hover over an open space to see its featured species.</p>
+        <p class="panel-hint">Hover over an open space to see its signature species.</p>
       </aside>
     </div>
     <section class="grid" id="grid" aria-label="Open spaces"></section>
@@ -113,7 +113,7 @@
       document.getElementById("landing").classList.remove("landing");
     }
 
-    // Side panel: the hovered space's most distinctive species (js/featured_species.js)
+    // Side panel: the hovered space's signature species, its most distinctive by TF-IDF (js/featured_species.js)
     const featured = window.FEATURED_SPECIES || { by_space: {} };
     let panel_space = null;
 
@@ -137,7 +137,7 @@
 
       const heading = document.createElement("h3");
       heading.className = "panel-heading";
-      heading.textContent = "Featured Species";
+      heading.textContent = "Signature Species";
       parts.push(heading);
 
       const list = featured.by_space[spc.id] || [];
@@ -147,6 +147,10 @@
         none.textContent = "Not enough observations here yet.";
         parts.push(none);
       } else {
+        const lede = document.createElement("p");
+        lede.className = "panel-lede";
+        lede.textContent = "Species seen here more than at other spaces.";
+        parts.push(lede);
         const ol = document.createElement("ol");
         ol.className = "featured-species";
         list.forEach((sp) => {
@@ -195,7 +199,7 @@
         parts.push(ol);
         const note = document.createElement("p");
         note.className = "panel-note";
-        note.textContent = "Ranked by TF-IDF: species observed often here but in few of the corridor's other spaces. Species introduced to Colorado are left out. Photos from iNaturalist; hover a photo for its credit.";
+        note.textContent = "Ranked by TF-IDF, which weighs how often a species is observed here against how many of the other spaces it appears in. Species introduced to Colorado are left out. Photos from iNaturalist; hover a photo for its credit.";
         parts.push(note);
       }
       panel.replaceChildren(...parts);
