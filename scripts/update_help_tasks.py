@@ -4,7 +4,8 @@
 For each space's area (its place or bounding box; excluded boxes aren't subtracted, so
 counts for those spaces are slightly high), counts verifiable observations of:
 
-  phenology          plants without a "Flowers and Fruits" annotation (term 12)
+  phenology          flowering plants (Angiospermae) without a "Flowers and Fruits"
+                     annotation (term 12); other plants don't flower, so can't be annotated
   pollinator_plants  bees (Anthophila) and butterflies & moths without a
                      "Nectar / Pollen delivering plant" observation field (field 4935)
   needs_id           observations still at Needs ID
@@ -22,7 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))  # for sibling modules,
 from areas import ROOT, area_for, count_observations, read_spaces  # noqa: E402
 
 USER_AGENT = "open-space-corridor help tasks (iNaturalist user: brettjackson)"
-PLANTS = 47126
+FLOWERING_PLANTS = 47125  # Angiospermae
 POLLINATORS = "630955,47157"  # Anthophila (bees), Lepidoptera
 FLOWERS_AND_FRUITS_TERM = 12
 NECTAR_PLANT_FIELD = "Nectar / Pollen delivering plant"  # observation field 4935
@@ -40,7 +41,7 @@ def main():
         pollinators = count(area, taxon_id=POLLINATORS)
         with_plant = count(area, taxon_id=POLLINATORS, **{"field:" + NECTAR_PLANT_FIELD: ""}) if pollinators else 0
         by_space[spc["id"]] = {
-            "phenology": count(area, taxon_id=PLANTS, without_term_id=FLOWERS_AND_FRUITS_TERM),
+            "phenology": count(area, taxon_id=FLOWERING_PLANTS, without_term_id=FLOWERS_AND_FRUITS_TERM),
             "pollinator_plants": pollinators - with_plant,
             "needs_id": count(area, quality_grade="needs_id"),
         }

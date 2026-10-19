@@ -90,7 +90,7 @@ function spaceHeader(spc) {
     // Quick iNaturalist tasks waiting here (js/help_tasks.js), linking to the space page's cards
     const tasks = window.HELP_TASKS?.by_space?.[spc.id] || {};
     const phrases = [
-        [tasks.phenology, (n) => `${n} plants need a bloom status`],
+        [tasks.phenology, (n) => `${n} flowering plants need a bloom status`],
         [tasks.needs_id, (n) => `${n} IDs to confirm`],
         [tasks.pollinator_plants, (n) => `${n} pollinators need a flower named`],
     ].filter(([n]) => n > 0).sort((x, y) => y[0] - x[0]).slice(0, 2);

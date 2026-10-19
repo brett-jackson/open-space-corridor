@@ -13,11 +13,11 @@
     const tasks = [
         {
             count: counts.phenology,
-            unit: "plant observations",
+            unit: "flowering plant observations",
             title: "Record what's blooming",
             text: `Annotate ${name}'s flowers to help show when different species are blooming.`,
             how: "Open each observation in Identify, choose Annotations, and pick Flowers, Flower Buds, Fruits or Seeds, or No Flowers or Fruits.",
-            link: inat("observations/identify", "taxon_id=47126&without_term_id=12&quality_grade=needs_id,research&reviewed=any"),
+            link: inat("observations/identify", "taxon_id=47125&without_term_id=12&quality_grade=needs_id,research&reviewed=any"),
             action: "Add flowering status",
         },
         {

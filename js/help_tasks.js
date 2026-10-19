@@ -3,17 +3,17 @@ window.HELP_TASKS = {
  "updated": "2026-10-19",
  "by_space": {
   "broomfield": {
-   "phenology": 1704,
+   "phenology": 1593,
    "pollinator_plants": 275,
    "needs_id": 1800
   },
   "metzger": {
-   "phenology": 534,
+   "phenology": 499,
    "pollinator_plants": 27,
-   "needs_id": 393
+   "needs_id": 391
   },
   "plaster-reservoir": {
-   "phenology": 161,
+   "phenology": 160,
    "pollinator_plants": 12,
    "needs_id": 97
   },
@@ -28,12 +28,12 @@ window.HELP_TASKS = {
    "needs_id": 2
   },
   "the-field": {
-   "phenology": 458,
+   "phenology": 448,
    "pollinator_plants": 123,
    "needs_id": 579
   },
   "mckay-lake": {
-   "phenology": 128,
+   "phenology": 125,
    "pollinator_plants": 21,
    "needs_id": 120
   }
