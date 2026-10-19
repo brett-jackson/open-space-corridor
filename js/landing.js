@@ -27,9 +27,17 @@ let preview_space = null; // hovered (not selected) space shown in the Signature
 
 // ---------- URL state ----------
 
+const DEFAULT_TAB = TABS.some((t) => t.id === "birds") ? "birds" : "signature"; // birds have the most complete data
+
 function parseHash() {
-    const [tab, target] = decodeURIComponent(location.hash.replace(/^#/, "")).split("/");
-    const s = { tab: TABS.some((t) => t.id === tab) ? tab : "signature", space: null, pair: null };
+    let raw = "";
+    try {
+        raw = decodeURIComponent(location.hash.replace(/^#/, ""));
+    } catch (err) {
+        raw = ""; // a malformed hash (e.g. "#%E0") falls back to the default view
+    }
+    const [tab, target] = raw.split("/");
+    const s = { tab: TABS.some((t) => t.id === tab) ? tab : DEFAULT_TAB, space: null, pair: null };
     if (target && target.includes("~")) {
         const [a, b] = target.split("~");
         if (byId[a] && byId[b] && s.tab !== "signature") s.pair = [a, b];
@@ -80,11 +88,15 @@ function spaceHeader(spc) {
     if (spc.subtitle) parts.push(el("p", "panel-subtitle", spc.subtitle));
     parts.push(exploreButton(spc));
     // Quick iNaturalist tasks waiting here (js/help_tasks.js), linking to the space page's cards
-    const tasks = window.HELP_TASKS?.by_space?.[spc.id];
-    const total = tasks ? Object.values(tasks).reduce((sum, n) => sum + n, 0) : 0;
-    if (total > 0) {
-        const help = el("a", "panel-help-link", `${total.toLocaleString()} quick ways to help on iNaturalist →`);
-        help.href = spaceHref(spc) + "#how-to-help";
+    const tasks = window.HELP_TASKS?.by_space?.[spc.id] || {};
+    const phrases = [
+        [tasks.phenology, (n) => `${n} plants need a bloom status`],
+        [tasks.needs_id, (n) => `${n} IDs to confirm`],
+        [tasks.pollinator_plants, (n) => `${n} pollinators need a flower named`],
+    ].filter(([n]) => n > 0).sort((x, y) => y[0] - x[0]).slice(0, 2);
+    if (phrases.length > 0) {
+        const help = el("a", "panel-help-link", "Help here: " + phrases.map(([n, say]) => say(n.toLocaleString())).join(" · ") + " →");
+        help.href = helpHref(spc);
         parts.push(help);
     }
     return parts;
@@ -92,7 +104,10 @@ function spaceHeader(spc) {
 
 // Signature tab, nothing selected
 function hintView() {
-    return [el("p", "panel-hint", "Hover over an open space for a preview, or click one to see its signature species and connections.")];
+    const touch = matchMedia("(hover: none)").matches;
+    return [el("p", "panel-hint", touch
+        ? "Tap an open space to see its signature species and connections."
+        : "Hover over an open space for a preview, or click one to see its signature species and connections.")];
 }
 
 // Signature tab, a space selected (or previewed on hover)
@@ -124,21 +139,8 @@ function groupView(group_id) {
     const label = groupLabel(group_id).toLowerCase();
     const parts = [
         el("h3", "panel-heading", "Native " + groupLabel(group_id)),
-        el("p", "panel-lede", `Neighboring open spaces that share native ${label} are linked, hinting at how wildlife can move along the corridor. Click a space or a line to explore.`),
+        el("p", "panel-lede", `Open spaces are linked together in a natural network. Thicker lines mean more of their native ${label} overlap. Click a space or a line to explore.`),
     ];
-    const legend = el("ul", "network-legend net-" + group_id);
-    [
-        ["legend-halo", "Halo size: native species seen there"],
-        ["legend-line", "Line thickness: how similar two neighbors' species lists are"],
-        ["legend-gap", "Dashed: more observations needed"],
-    ].forEach(([cls, text]) => {
-        const li = el("li");
-        const key = el("span", "legend-key " + cls);
-        key.setAttribute("aria-hidden", "true");
-        li.append(key, text);
-        legend.appendChild(li);
-    });
-    parts.push(legend);
 
     const ol = el("ol", "network-counts");
     located
@@ -148,10 +150,13 @@ function groupView(group_id) {
             const a = el("a", "network-count-row");
             a.href = hashFor({ tab: group_id, space: spc.id });
             a.append(el("span", null, shortName(spc)), el("span", "network-count", `${n} species · ${obs.toLocaleString()} obs.`));
-            if (low) a.appendChild(el("span", "network-flag", "More observations needed"));
             const li = el("li");
-            if (low) li.classList.add("needs-data");
             li.appendChild(a);
+            if (low) {
+                const flag = el("a", "network-flag", obs === 0 ? `Be the first to record ${label} here →` : "More observations needed · how to help →");
+                flag.href = helpHref(spc);
+                li.appendChild(flag);
+            }
             ol.appendChild(li);
         });
     parts.push(ol);
@@ -195,6 +200,7 @@ function comparisonView(a, b, group_id) {
     [`${shortName(a)} (${at_a.size})`, `${shortName(b)} (${at_b.size})`].forEach((text) => columns.appendChild(el("h4", null, text)));
     const gap = (where) => {
         const g = el("div", "network-gap");
+        g.setAttribute("role", "img");
         g.setAttribute("aria-label", "Not seen at " + where);
         return g;
     };
@@ -295,10 +301,23 @@ function buildTabs() {
         const b = el("button", null, t.label);
         b.type = "button";
         b.role = "tab";
+        b.id = "tab-" + t.id;
         b.dataset.tab = t.id;
+        b.setAttribute("aria-controls", "panel-content");
         // Switching tabs keeps the selected space, so you can compare its groups
         b.addEventListener("click", () => { if (t.id !== state.tab) go({ tab: t.id, space: state.space }); });
         tabs.appendChild(b);
+    });
+    // Left/right arrows move between tabs, as screen-reader users expect of a tab list
+    tabs.addEventListener("keydown", (e) => {
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        const buttons = [...tabs.querySelectorAll("button")];
+        const i = buttons.indexOf(document.activeElement);
+        if (i < 0) return;
+        const next = buttons[(i + (e.key === "ArrowRight" ? 1 : buttons.length - 1)) % buttons.length];
+        next.focus();
+        next.click();
+        e.preventDefault();
     });
 }
 
@@ -385,13 +404,29 @@ function buildMap() {
     });
 
     // Frame every space and its boundary, with room for the markers to expand
-    const fit = () => map.fitBounds(frame, {
-        paddingTopLeft: [50, 90], // room for the resting markers, which sit above their pins
-        paddingBottomRight: [50, 30],
-        maxZoom: 16,
-    });
+    // Narrow maps need less side padding, and phones keep marker labels off the right edge
+    let fitting = false;
+    let user_moved = false; // once someone pans or zooms, resizes stop re-framing the map
+    const fit = () => {
+        const narrow = map_el.clientWidth < 600;
+        fitting = true;
+        map.fitBounds(frame, {
+            paddingTopLeft: narrow ? [24, 80] : [50, 90], // room for the resting markers, which sit above their pins
+            paddingBottomRight: narrow ? [70, 24] : [50, 30],
+            maxZoom: 16,
+            animate: false,
+        });
+        fitting = false;
+    };
     fit();
-    window.addEventListener("resize", fit);
+    map.on("dragstart zoomstart", () => { if (!fitting) user_moved = true; });
+    let last_size = map.getSize();
+    window.addEventListener("resize", () => {
+        const size = map.getSize();
+        if (size.x === last_size.x && size.y === last_size.y) return;
+        last_size = size;
+        if (!user_moved) fit();
+    });
 
     if (typeof createNetwork === "function" && NETWORK_DATA.groups.length > 0) {
         network = createNetwork(map, located, NETWORK_DATA, {

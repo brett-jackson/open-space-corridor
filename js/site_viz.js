@@ -22,13 +22,6 @@ const params = {
 const ROW_COUNT = 2;
 const GAP_AR = 0.03; // the gap between tiles, as a fraction of row height
 
-document.title = SPACE_NAME;
-document.getElementById("space-title").textContent = SPACE_NAME;
-// SPACE_SUBTITLE is optional in a space's constants.js
-const subtitle = document.getElementById("space-subtitle");
-if (typeof SPACE_SUBTITLE !== "undefined" && SPACE_SUBTITLE) subtitle.textContent = SPACE_SUBTITLE;
-else subtitle.remove();
-
 const grid = document.getElementById("grid");
 grid.setAttribute("aria-label", "Activity at " + SPACE_NAME);
 const prev = document.getElementById("prev");
@@ -48,7 +41,6 @@ for (let i = 0; i < ROW_COUNT; i++) {
 let shown = 0;
 let page = 0;
 let done = false;
-let loading = false;
 
 function mainPhoto(obs) {
     return obs.observation_photos?.[0]?.photo;
@@ -115,19 +107,29 @@ function addTile(obs) {
     shown += 1;
 }
 
-async function loadMore() {
-    if (loading || done) return;
-    loading = true;
-    const json_obj = await inat_request("observations", resp_params, {...params, "page" : page + 1});
-    if (!json_obj || json_obj.results.length === 0) {
-        done = true; // stop paging if the API runs dry or errors
-    } else {
-        page += 1;
-        json_obj.results.filter((obs) => mainPhoto(obs)?.url && !isExcluded(obs)).forEach(addTile);
-        if (page * params.per_page >= json_obj.total_results) done = true;
-    }
-    loading = false;
-    update();
+// One page at a time: overlapping callers share the request already in flight
+let pending = null;
+let load_failed = false;
+function loadMore() {
+    if (done) return Promise.resolve();
+    if (pending) return pending;
+    pending = (async () => {
+        const json_obj = await inat_request("observations", resp_params, {...params, "page" : page + 1});
+        if (!json_obj) {
+            load_failed = true;
+            done = true; // stop paging after an error rather than retrying in a loop
+        } else if (json_obj.results.length === 0) {
+            done = true;
+        } else {
+            page += 1;
+            json_obj.results.filter((obs) => mainPhoto(obs)?.url && !isExcluded(obs)).forEach(addTile);
+            if (page * params.per_page >= json_obj.total_results) done = true;
+        }
+    })().finally(() => {
+        pending = null;
+        update();
+    });
+    return pending;
 }
 
 function nearEnd() {
@@ -150,11 +152,13 @@ window.addEventListener("resize", update);
 prev.addEventListener("click", () => grid.scrollBy({ left: -grid.clientWidth * 0.8, behavior: "smooth" }));
 next.addEventListener("click", () => grid.scrollBy({ left: grid.clientWidth * 0.8, behavior: "smooth" }));
 
-loadMore().then(() => {
+// Keep loading until a tile appears (a page can hold no usable photos) or results run out
+(async () => {
+    while (shown === 0 && !done) await loadMore();
     if (shown === 0) {
         const msg = document.createElement("p");
         msg.className = "empty";
-        msg.innerHTML = "No observations found.";
+        msg.textContent = load_failed ? "Couldn't load observations right now. Please try again later." : "No observations found.";
         document.getElementById("carousel").replaceWith(msg);
     }
-});
+})();

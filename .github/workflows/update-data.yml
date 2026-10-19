@@ -1,11 +1,15 @@
 name: Update iNaturalist data
 
-# Refreshes the static data files the site serves (boundaries, trends caches, featured
-# species, species network, help tasks) and commits them when anything changed. A run makes roughly 85
-# requests, spaced 1 second apart by the scripts, well within iNaturalist's API guidelines.
+# Refreshes the static data files the site serves and commits them when anything changed.
+#   Hourly: trends (new observations only), signature species, species network (~40 requests)
+#   Daily:  also re-checks last year's trends and counts the How to Help tasks (~40 more)
+#   Manual (Run workflow): everything, including space boundaries, which rarely change
+# Requests are spaced 1 second apart and repeated ones are shared through a short-lived
+# cache (scripts/areas.py), well within iNaturalist's API guidelines.
 on:
   schedule:
-    - cron: "17 * * * *" # hourly, off the top of the hour when GitHub's scheduler is busiest
+    - cron: "17 * * * *"  # hourly, off the top of the hour when GitHub's scheduler is busiest
+    - cron: "47 9 * * *"  # daily, early morning in Colorado
   workflow_dispatch: # allow a manual run from the Actions tab
 
 permissions:
@@ -15,6 +19,9 @@ concurrency:
   group: update-data
   cancel-in-progress: false
 
+env:
+  HOURLY: ${{ github.event_name == 'schedule' && github.event.schedule == '17 * * * *' }}
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -22,30 +29,45 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Order matters: featured species reads the boundaries and the trends caches' stand-in boxes
+      # Each data step may fail on its own (an iNaturalist outage, say) without losing the
+      # others' updates; the commit step always runs. Order matters: later scripts read the
+      # boundaries and the trends caches' stand-in boxes.
       - name: Update boundaries
+        if: github.event_name == 'workflow_dispatch'
+        continue-on-error: true
         run: python3 scripts/update_boundaries.py
 
       - name: Update trends caches
-        run: python3 scripts/update_trends_cache.py
+        continue-on-error: true
+        run: |
+          if [ "$HOURLY" = "true" ]; then
+            python3 scripts/update_trends_cache.py --refresh-years 0  # only years not yet cached
+          else
+            python3 scripts/update_trends_cache.py                    # also re-check the latest cached year
+          fi
 
       - name: Update featured species
+        continue-on-error: true
         run: python3 scripts/update_featured_species.py
 
       - name: Update species network
+        continue-on-error: true
         run: python3 scripts/update_species_network.py
 
       - name: Update help tasks
+        if: env.HOURLY != 'true'
+        continue-on-error: true
         run: python3 scripts/update_help_tasks.py
 
       - name: Commit changes
+        if: always()
         run: |
-          if git diff --quiet; then
+          git add js/boundaries.js js/featured_species.js js/species_network.js js/help_tasks.js spaces/*/trends_cache.js
+          if git diff --cached --quiet; then
             echo "No data changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add js/boundaries.js js/featured_species.js js/species_network.js js/help_tasks.js spaces/*/trends_cache.js
           git commit -m "Update iNaturalist data"
           git push

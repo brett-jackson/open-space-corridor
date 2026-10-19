@@ -21,55 +21,16 @@ indexed yet) is counted over that same box.
 """
 import json
 import math
-import re
-import time
-import urllib.parse
-import urllib.request
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # for areas.py, even under python -I
-from areas import all_observations, box_params, exclusions  # noqa: E402
+from areas import ROOT, all_observations, area_for, exclusions, introduced_species, read_spaces, species_counts  # noqa: E402
 
-API = "https://api.inaturalist.org/v1/observations/species_counts"
 USER_AGENT = "open-space-corridor featured species (iNaturalist user: brettjackson)"
-MIN_INTERVAL = 1.0  # iNaturalist asks for about 1 request per second
-PER_PAGE = 500
 TOP_N = 10
 MIN_OBSERVATIONS = 3  # fewer is fine if any observation is Research Grade
-REFERENCE_PLACE = 34  # Colorado: where establishment means (native vs. introduced) are judged
-ROOT = Path(__file__).resolve().parent.parent
-SPACES_JS = ROOT / "js" / "spaces.js"
 OUT = ROOT / "js" / "featured_species.js"
-
-_last_request = 0.0
-
-
-def inat(**params):
-    global _last_request
-    wait = _last_request + MIN_INTERVAL - time.time()
-    if wait > 0:
-        time.sleep(wait)
-    _last_request = time.time()
-    url = API + "?" + urllib.parse.urlencode({"verifiable": "true", **params})
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(req, timeout=60) as resp:
-        return json.load(resp)
-
-
-def read_js_object(path, pattern):
-    match = re.search(pattern, path.read_text(), re.S) if path.exists() else None
-    return json.loads(match.group(1)) if match else None
-
-
-def area_for(space):
-    """The space's own bounding box, its place, or the box its trends cache stands in with."""
-    if space.get("bbox"):
-        return box_params(space["bbox"]), "bounding box"
-    cache = read_js_object(ROOT / "spaces" / space["id"] / "trends_cache.js", r"=\s*(\{.*\})\s*;?\s*$")
-    if cache and cache.get("bbox") and cache.get("place_id") == space["place_id"]:
-        return cache["bbox"], "stand-in bounding box"
-    return {"place_id": space["place_id"]}, f"place {space['place_id']}"
 
 
 def counts_from_observations(space, area):
@@ -86,53 +47,9 @@ def counts_from_observations(space, area):
     return counts, research
 
 
-def species_counts(area):
-    """taxon id -> (observation count, taxon) for every species-level taxon in the area."""
-    counts, page = {}, 1
-    while True:
-        data = inat(**area, per_page=PER_PAGE, page=page)
-        for r in data["results"]:
-            if r["taxon"].get("rank_level", 100) <= 10:  # species and finer
-                counts[r["taxon"]["id"]] = (r["count"], r["taxon"])
-        if page * PER_PAGE >= data["total_results"] or not data["results"]:
-            return counts
-        page += 1
-
-
-def corridor_bbox(spaces):
-    """A box around every space's boundary and stand-in box, padded a little."""
-    lats, lngs = [], []
-    boundaries = read_js_object(ROOT / "js" / "boundaries.js", r"=\s*(\{.*\})\s*;?\s*$") or {}
-
-    def walk(coords):
-        if isinstance(coords[0], (int, float)):
-            lngs.append(coords[0])
-            lats.append(coords[1])
-        else:
-            for c in coords:
-                walk(c)
-
-    for spc in spaces:
-        if spc["id"] in boundaries:
-            walk(boundaries[spc["id"]]["coordinates"])
-        if spc.get("location"):
-            lats.append(spc["location"][0])
-            lngs.append(spc["location"][1])
-        area, _ = area_for(spc)
-        if "nelat" in area:
-            lats += [area["nelat"], area["swlat"]]
-            lngs += [area["nelng"], area["swlng"]]
-    pad = 0.005
-    return {"nelat": max(lats) + pad, "nelng": max(lngs) + pad, "swlat": min(lats) - pad, "swlng": min(lngs) - pad}
-
-
 def main():
-    spaces = read_js_object(SPACES_JS, r"=\s*(\[.*\])\s*;?\s*$")
-    if not spaces:
-        raise SystemExit(f"couldn't find the SPACES list in {SPACES_JS}")
-
-    # Every species observed around the corridor that's listed as introduced in Colorado
-    introduced = set(species_counts({**corridor_bbox(spaces), "place_id": REFERENCE_PLACE, "introduced": "true"}))
+    spaces = read_spaces()
+    introduced = introduced_species(spaces, USER_AGENT)
     print(f"{len(introduced)} introduced species around the corridor (excluded)")
 
     by_space = {}
@@ -143,8 +60,8 @@ def main():
             counts, research[spc["id"]] = counts_from_observations(spc, area)
             label += f", minus {len(exclusions(spc))} excluded area(s)"
         else:
-            counts = species_counts(area)
-            research[spc["id"]] = {t: v[0] for t, v in species_counts({**area, "quality_grade": "research"}).items()}
+            counts = species_counts(area, USER_AGENT)
+            research[spc["id"]] = {t: v[0] for t, v in species_counts({**area, "quality_grade": "research"}, USER_AGENT).items()}
         by_space[spc["id"]] = {t: v for t, v in counts.items() if t not in introduced}
         print(f"{spc['id']}: {len(by_space[spc['id']])} native or unknown-status species of {len(counts)} ({label})")
 

@@ -15,7 +15,7 @@
             count: counts.phenology,
             unit: "plant observations",
             title: "Record what's blooming",
-            text: `These don't yet say whether the plant was flowering or fruiting. Adding the "Flowers and Fruits" annotation builds a bloom calendar for ${name}.`,
+            text: `Annotate ${name}'s flowers to help show when different species are blooming.`,
             how: "Open each observation in Identify, choose Annotations, and pick Flowers, Flower Buds, Fruits or Seeds, or No Flowers or Fruits.",
             link: inat("observations/identify", "taxon_id=47126&without_term_id=12&quality_grade=needs_id,research&reviewed=any"),
             action: "Add flowering status",
@@ -24,7 +24,7 @@
             count: counts.pollinator_plants,
             unit: "bee & butterfly observations",
             title: "Name the flower a pollinator visited",
-            text: `These don't record the plant the insect was on. The "Nectar / Pollen delivering plant" field shows which plants feed ${name}'s pollinators.`,
+            text: `Help us understand what flowers ${name}'s pollinators are visiting.`,
             how: 'Where the plant is visible, open the observation, choose "Add a Field", search for "Nectar / Pollen delivering plant" and enter the plant.',
             link: inat("observations", "taxon_ids=630955,47157&verifiable=true&subview=grid"),
             action: "Browse pollinators",
@@ -32,8 +32,8 @@
         {
             count: counts.needs_id,
             unit: "observations need an ID",
-            title: "Help confirm identifications",
-            text: "A second, agreeing identification moves an observation to Research Grade, so it counts toward this site's species lists and signature species.",
+            title: "Help with identifications",
+            text: "Confirm or adjust identifications to improve data quality.",
             how: "Start with groups you know well; use the filters in Identify to narrow by taxon.",
             link: inat("observations/identify", "quality_grade=needs_id&reviewed=any"),
             action: "Start identifying",
@@ -48,9 +48,9 @@
         tasks.push({
             count: obs,
             unit: `${SINGULAR[g.id] || g.label.toLowerCase()} observations so far`,
-            title: `Look for ${g.label.toLowerCase()} at ${name}`,
-            text: `With so few records, we can't yet tell how ${name}'s ${g.label.toLowerCase()} connect to its neighbors. New observations fill in the corridor map.`,
-            how: "Photograph what you find and upload it with the iNaturalist app; observations here are added to this site automatically.",
+            title: obs === 0 ? `Be the first to record ${g.label.toLowerCase()} at ${name}` : `Look for ${g.label.toLowerCase()} at ${name}`,
+            text: `Fill in the corridor map by observing ${name}'s ${g.label.toLowerCase()}.`,
+            how: "Upload your photos to iNaturalist.",
             link: "https://www.inaturalist.org/observations/upload",
             action: "Upload observations",
             group: g.id,
@@ -73,6 +73,12 @@
         return card;
     }));
 
-    // Arriving from the landing page's "How to help" link
-    if (location.hash === "#how-to-help") requestAnimationFrame(() => document.getElementById("how-to-help")?.scrollIntoView());
+    // Arriving from a "how to help" link: sections above load asynchronously and change height,
+    // so scroll again as they settle, until the visitor scrolls on their own
+    if (location.hash === "#how-to-help") {
+        const target = document.getElementById("how-to-help");
+        let user_scrolled = false;
+        ["wheel", "touchstart", "keydown"].forEach((evt) => addEventListener(evt, () => { user_scrolled = true; }, { once: true, passive: true }));
+        [0, 600, 1500, 3000].forEach((ms) => setTimeout(() => { if (!user_scrolled) target?.scrollIntoView(); }, ms));
+    }
 })();

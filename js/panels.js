@@ -51,8 +51,9 @@ function signatureSection(spc, heading_tag = "h3") {
         a.rel = "noopener";
         a.appendChild(speciesPhoto(sp.photo, sp.attribution));
         const text = el("span", "featured-text");
-        const common = el("span", "featured-common", sp.common_name ? formatCommonName(sp.common_name) : sp.name);
-        if (!sp.common_name) common.classList.add("scientific");
+        const display = taxonDisplayName({ preferred_common_name: sp.common_name, name: sp.name });
+        const common = el("span", "featured-common", display.text);
+        if (display.scientific) common.classList.add("scientific");
         text.appendChild(common);
         if (sp.common_name) text.appendChild(el("span", "featured-sci", sp.name));
         const where = sp.spaces === 1 ? "only here" : `in ${sp.spaces} of ${FEATURED.spaces_compared} spaces`;
@@ -78,8 +79,9 @@ function networkSpeciesItem(id, tag = "li") {
     a.target = "_blank";
     a.rel = "noopener";
     a.appendChild(speciesPhoto(sp.photo));
-    const name = el("span", null, sp.common_name ? formatCommonName(sp.common_name) : sp.name);
-    if (!sp.common_name) name.classList.add("scientific");
+    const display = taxonDisplayName({ preferred_common_name: sp.common_name, name: sp.name });
+    const name = el("span", null, display.text);
+    if (display.scientific) name.classList.add("scientific");
     a.appendChild(name);
     item.appendChild(a);
     return item;
@@ -93,26 +95,42 @@ function sortedSpecies(ids) {
     return [...ids].sort((x, y) => label(x).localeCompare(label(y)));
 }
 
-// A space's links in one group, most similar first: [{ other, link }]
+// A space's links in one group, most similar first and gaps last: [{ other, link }]
 function connectionsOf(spc, spaces, group_id) {
+    const rank = (link) => (link.gap ? -1 : link.similarity);
     return corridorLinks(spaces, NETWORK_DATA, group_id)
         .filter((l) => l.a.id === spc.id || l.b.id === spc.id)
         .map((l) => ({ other: l.a.id === spc.id ? l.b : l.a, link: l }))
-        .sort((x, y) => (y.link.similarity ?? -1) - (x.link.similarity ?? -1));
+        .sort((x, y) => rank(y.link) - rank(x.link));
+}
+
+// The space that most needs observations for a thin or empty link (the one with fewer)
+function thinnerSpace(link, group_id) {
+    const ea = spaceEffort(NETWORK_DATA, link.a.id, group_id).obs, eb = spaceEffort(NETWORK_DATA, link.b.id, group_id).obs;
+    return ea <= eb ? link.a : link.b;
+}
+
+// Where to send someone who wants to fill a data gap: that space's How to Help cards
+function helpHref(spc) {
+    return spaceHref(spc) + "#how-to-help";
 }
 
 // List of a space's neighbors in one group with a similarity bar; `hrefFor(other)` gives
-// each row's link (or null for a plain row), so pages decide where a row goes
+// each row's link, so pages decide where a row goes. Rows without enough data link to the
+// thinner space's How to Help cards instead.
 function connectionsList(spc, spaces, group_id, hrefFor) {
     const label = groupLabel(group_id).toLowerCase();
     const ul = el("ul", "connections net-" + group_id);
     connectionsOf(spc, spaces, group_id).forEach(({ other, link }) => {
-        const href = link.gap ? null : hrefFor(other);
-        const row = el(href ? "a" : "div", "connection" + (link.gap ? " is-gap" : ""));
-        if (href) row.href = href;
+        const tooThin = link.similarity === null || link.thin;
+        const row = el("a", "connection" + (link.gap ? " is-gap" : ""));
+        row.href = tooThin ? helpHref(thinnerSpace(link, group_id)) : hrefFor(other);
         row.appendChild(el("span", "connection-name", shortName(other)));
-        if (link.similarity === null) {
-            row.appendChild(el("span", "connection-detail", "More observations needed to compare"));
+        if (tooThin) {
+            const fewest = thinnerSpace(link, group_id);
+            const { obs } = spaceEffort(NETWORK_DATA, fewest.id, group_id);
+            row.appendChild(el("span", "connection-detail",
+                `Too few records to compare (${obs.toLocaleString()} obs. at ${shortName(fewest)}) · help add some →`));
         } else if (link.shared === 0) {
             row.appendChild(el("span", "connection-detail", `No shared ${label} recorded yet`));
         } else {
@@ -135,6 +153,10 @@ function effortLine(spc, group_id) {
     const n = (NETWORK_DATA.by_space[spc.id]?.[group_id] || []).length;
     const { obs, low } = spaceEffort(NETWORK_DATA, spc.id, group_id);
     const p = el("p", "effort-line", `${n} native species · ${obs.toLocaleString()} observations`);
-    if (low) p.appendChild(el("span", "network-flag", "More observations needed"));
+    if (low) {
+        const flag = el("a", "network-flag", "More observations needed · how to help →");
+        flag.href = helpHref(spc);
+        p.appendChild(flag);
+    }
     return p;
 }

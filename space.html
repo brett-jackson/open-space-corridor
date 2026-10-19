@@ -24,9 +24,9 @@
       <nav class="section-nav" id="section-nav" aria-label="Sections"></nav>
     </aside>
     <main>
-      <section class="page-section" id="signature-species">
-        <h2>Signature Species</h2>
-        <div id="signature-list"></div>
+      <section class="page-section" id="how-to-help">
+        <h2>How to Help</h2>
+        <div class="help-cards" id="help-cards"></div>
       </section>
       <section class="page-section" id="top-observers">
         <h2>Top Observers</h2>
@@ -62,14 +62,13 @@
           </details>
         </div>
       </section>
+      <section class="page-section" id="signature-species">
+        <h2>Signature Species</h2>
+        <div id="signature-list"></div>
+      </section>
       <section class="page-section" id="corridor-connections">
         <h2>Corridor Connections</h2>
         <div id="connections-body"></div>
-      </section>
-      <section class="page-section" id="how-to-help">
-        <h2>How to Help</h2>
-        <p class="panel-lede">Quick tasks on iNaturalist that make this space's picture more complete. Each opens a filtered list in a new tab.</p>
-        <div class="help-cards" id="help-cards"></div>
       </section>
     </main>
   </div>
@@ -92,7 +91,13 @@
       msg.appendChild(link);
       document.querySelector("main").replaceChildren(msg);
       document.getElementById("space-title").textContent = "Not found";
+      document.querySelector(".corridor-mini")?.remove();
     } else {
+      document.title = SPACE_NAME;
+      document.getElementById("space-title").textContent = SPACE_NAME;
+      const subtitle = document.getElementById("space-subtitle");
+      if (SPACE_SUBTITLE) subtitle.textContent = SPACE_SUBTITLE;
+      else subtitle.remove();
       [
         "js/queries.js",
         "js/area.js",

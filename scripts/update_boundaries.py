@@ -11,16 +11,13 @@ Boundaries rarely change, so run this when you add a space or change its place_i
 All places are fetched in one request. Coordinates are rounded to 6 decimals (~10 cm).
 """
 import json
-import urllib.request
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # for areas.py, even under python -I
-from areas import box_params, exclusions, read_spaces  # noqa: E402
+from areas import API_V1, ROOT, box_params, exclusions, inat_get, read_spaces  # noqa: E402
 
-API = "https://api.inaturalist.org/v1/places/"
 USER_AGENT = "open-space-corridor boundaries (iNaturalist user: brettjackson)"
-ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "js" / "boundaries.js"
 
 
@@ -61,9 +58,7 @@ def main():
     places = {}
     if spaces:
         ids = ",".join(str(spc["place_id"]) for spc in spaces)
-        req = urllib.request.Request(API + ids, headers={"User-Agent": USER_AGENT})
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            places = {p["id"]: p for p in json.load(resp)["results"]}
+        places = {p["id"]: p for p in inat_get(API_V1 + "places/" + ids, USER_AGENT, {})["results"]}
 
     for spc in spaces:
         geometry = (places.get(spc["place_id"]) or {}).get("geometry_geojson")

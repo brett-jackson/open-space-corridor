@@ -25,7 +25,8 @@ function spaceDistanceKm(a, b) {
 
 // Every linked pair for a group: each space joined to its nearest few, as unordered pairs.
 // Each link: { a, b, shared, sizeA, sizeB, similarity (0-1, or null when either list is
-// empty), gap: true when the pair can't be compared or shares nothing yet }
+// empty), thin: either space has too few observations of the group for the similarity to
+// mean much, gap: the pair can't be compared, shares nothing yet, or is thin }
 function corridorLinks(spaces, data, group) {
     const speciesAt = (spc) => new Set(data.by_space[spc.id]?.[group] || []);
     const pairs = new Map();
@@ -42,12 +43,13 @@ function corridorLinks(spaces, data, group) {
         const sa = speciesAt(a), sb = speciesAt(b);
         const shared = [...sa].filter((id) => sb.has(id)).length;
         const comparable = sa.size > 0 && sb.size > 0;
+        const thin = spaceEffort(data, a.id, group).low || spaceEffort(data, b.id, group).low;
         return {
-            a, b, shared,
+            a, b, shared, thin,
             sizeA: sa.size,
             sizeB: sb.size,
             similarity: comparable ? (2 * shared) / (sa.size + sb.size) : null,
-            gap: !comparable || shared === 0,
+            gap: !comparable || shared === 0 || thin,
         };
     });
 }
@@ -128,15 +130,15 @@ function createNetwork(map, spaces, data, handlers) {
         const max = Math.max(1, ...counts);
         const label = (data.groups.find((g) => g.id === group)?.label || "species").toLowerCase();
 
-        corridorLinks(spaces, data, group).forEach(({ a, b, shared, similarity, gap }) => {
+        corridorLinks(spaces, data, group).forEach(({ a, b, shared, similarity, thin, gap }) => {
             const pa = map.latLngToLayerPoint(a.location), pb = map.latLngToLayerPoint(b.location);
             const c = controlPoint(pa, pb);
             const t0 = Math.min(0.4, HALO_MIN_RADIUS / (pa.distanceTo(pb) || 1));
             const line = curveLine(pa, c, pb, t0, 1 - t0);
 
             let tip, weight;
-            if (similarity === null) {
-                tip = `${a.title} ↔ ${b.title}: more observations needed to compare`;
+            if (similarity === null || thin) {
+                tip = `${a.title} ↔ ${b.title}: too few observations to compare yet`;
                 weight = 1.5;
             } else if (shared === 0) {
                 tip = `${a.title} ↔ ${b.title}: no shared ${label} recorded yet`;

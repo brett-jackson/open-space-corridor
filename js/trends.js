@@ -30,13 +30,9 @@ let trend_request_id = 0;
 let trend_focus = -1;          // index of the year under the crosshair
 const compact = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 });
 
-// Seed from the static cache when the space has one
-// Seed from the static cache when it was built for this same area (older caches only record place_id)
-function cacheMatchesArea(cache) {
-    if (cache.area_key) return cache.area_key === AREA_KEY;
-    return !SPACE.bbox && AREA_EXCLUDE.length === 0 && cache.place_id === PLACE_ID;
-}
-const trend_cache = typeof TRENDS_CACHE !== "undefined" && TRENDS_CACHE.cumulative && cacheMatchesArea(TRENDS_CACHE) ? TRENDS_CACHE : null;
+// Seed from the static cache when it was built for this same area
+const trend_cache = typeof TRENDS_CACHE !== "undefined" && TRENDS_CACHE.area_key === AREA_KEY ? TRENDS_CACHE : null;
+let trend_load_failed = false;
 // A bounding-box stand-in cache (place not indexed yet) counts the same box live
 if (trend_cache && trend_cache.bbox) {
     delete trend_params["place_id"];
@@ -227,7 +223,7 @@ async function loadFromObservations() {
 // Without a cache, one histogram request gives the year range and cumulative observations
 async function loadYears() {
     if (AREA_EXCLUDE.length > 0 && !trend_cache) {
-        await loadFromObservations();
+        if (!(await loadFromObservations())) trend_load_failed = true;
         return;
     }
     if (trend_cache && trend_cache.observations && Object.keys(trend_cache.observations).length > 0) {
@@ -236,6 +232,10 @@ async function loadYears() {
         return;
     }
     const json_obj = await inat_request("observations/histogram", {}, {...trend_params, "interval" : "year", "date_field" : "observed"});
+    if (!json_obj) {
+        trend_load_failed = true;
+        return;
+    }
     const per_year = {};
     Object.entries(json_obj?.results?.year || {}).forEach(([date, count]) => { per_year[parseInt(date, 10)] = count; });
     const years = Object.keys(per_year).map(Number);
@@ -298,7 +298,7 @@ loadYears().then(() => {
     if (trend_years.length === 0) {
         const msg = document.createElement("p");
         msg.className = "empty";
-        msg.textContent = "No observations found.";
+        msg.textContent = trend_load_failed ? "Couldn't load trends right now. Please try again later." : "No observations found.";
         document.getElementById("trend-body").replaceWith(msg);
         return;
     }

@@ -19,10 +19,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # for sibling modules, even under python -I
-from areas import ROOT, inat_get, read_spaces  # noqa: E402
-from update_featured_species import area_for  # noqa: E402
+from areas import ROOT, area_for, count_observations, read_spaces  # noqa: E402
 
-API = "https://api.inaturalist.org/v1/observations"
 USER_AGENT = "open-space-corridor help tasks (iNaturalist user: brettjackson)"
 PLANTS = 47126
 POLLINATORS = "630955,47157"  # Anthophila (bees), Lepidoptera
@@ -32,7 +30,7 @@ OUT = ROOT / "js" / "help_tasks.js"
 
 
 def count(area, **params):
-    return inat_get(API, USER_AGENT, {**area, "verifiable": "true", "per_page": 0, **params})["total_results"]
+    return count_observations(area, USER_AGENT, **params)
 
 
 def main():

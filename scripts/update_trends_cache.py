@@ -19,48 +19,23 @@ just the years missing from a cache are requested, plus the most recent cached y
 import argparse
 import datetime
 import json
-import re
 import sys
-import time
-import urllib.parse
-import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # for areas.py, even under python -I
-from areas import all_observations, area_key, area_params, exclusions, read_spaces  # noqa: E402
+from areas import API_V2, ROOT, all_observations, area_key, area_params, exclusions, inat_get, read_js_object, read_spaces  # noqa: E402
 
-API = "https://api.inaturalist.org/v2/"
 USER_AGENT = "open-space-corridor trends cache (iNaturalist user: brettjackson)"
-MIN_INTERVAL = 1.0  # iNaturalist asks for about 1 request per second
-ROOT = Path(__file__).resolve().parent.parent
 SPACES_DIR = ROOT / "spaces"
-SPACES_JS = ROOT / "js" / "spaces.js"
-
-_last_request = 0.0
 
 
 def inat(path, **params):
-    global _last_request
-    wait = _last_request + MIN_INTERVAL - time.time()
-    if wait > 0:
-        time.sleep(wait)
-    _last_request = time.time()
-    url = API + path + "?" + urllib.parse.urlencode({"verifiable": "true", **params})
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        return json.load(resp)
-
-
-def read_cache(path):
-    if not path.exists():
-        return None
-    match = re.search(r"=\s*(\{.*\})\s*;?\s*$", path.read_text(), re.S)
-    return json.loads(match.group(1)) if match else None
+    return inat_get(API_V2 + path, USER_AGENT, {"verifiable": "true", **params})
 
 
 def write_cache(path, cache):
     """Write the cache, unless only its "updated" date would change (keeps scheduled runs quiet)."""
-    old = read_cache(path)
+    old = read_js_object(path)
     if old and {k: v for k, v in old.items() if k != "updated"} == {k: v for k, v in cache.items() if k != "updated"}:
         return False
     body = json.dumps(cache, indent=2, sort_keys=True)
@@ -97,12 +72,9 @@ def update_space(space, full, refresh_years, bbox=None):
     space_dir = SPACES_DIR / space["id"]
     space_dir.mkdir(exist_ok=True)
     cache_path = space_dir / "trends_cache.js"
-    old = None if full or bbox else read_cache(cache_path)
-    if old and (old["area_key"] != area_key(space) if "area_key" in old else old.get("place_id") != place_id or space.get("bbox")):
+    old = None if full or bbox else read_js_object(cache_path)
+    if old and old.get("area_key") != area_key(space):
         print("  the space's area changed; rebuilding")
-        old = None
-    if old and not old.get("cumulative"):
-        print("  cache is in the old per-year format; rebuilding")
         old = None
     if old and old.get("bbox"):
         print("  cache is a bounding-box stand-in; rebuilding from the place")
@@ -186,7 +158,7 @@ def main():
     for name in names:
         print(name)
         if name not in spaces:
-            print(f"  not in {SPACES_JS.relative_to(ROOT)}; skipping", file=sys.stderr)
+            print("  not in js/spaces.js; skipping", file=sys.stderr)
             continue
         try:
             update_space(spaces[name], args.full, args.refresh_years, bbox)

@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
-"""Save each space's native species in a few groups to js/species_network.js for the landing
-page's network overlays, which compare which species two spaces share.
+"""Save each space's native species in a few groups to js/species_network.js for the corridor
+network views, which compare which species neighboring spaces share.
 
-Groups (GROUPS below): native bees (family Apidae), native butterflies and moths (order
+Groups (GROUPS below): native bees (Anthophila), native butterflies and moths (order
 Lepidoptera) and native birds (class Aves). "Native" means not listed by iNaturalist as
 introduced in Colorado, matching the signature species. Observations identified below
 species (subspecies, varieties) count toward their species, so two spaces' lists compare
-like with like. Spaces with excluded boxes are counted from their individual observations.
-It also records each space's verifiable observation count per group (native or not), which
-the map uses to flag spaces where more observations are needed.
+like with like. Each space's species come from the same full species list the signature
+species use (shared through the request cache in areas.py); spaces with excluded boxes are
+counted from their individual observations.
+
+It also records each space's verifiable observation count per group, counted the same way
+for every space: all observations in the group, whatever rank they're identified to. The
+map uses it to flag spaces where more observations are needed.
 
     python3 scripts/update_species_network.py
 """
@@ -16,15 +20,15 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))  # for sibling modules, even under python -I
-from areas import ROOT, all_observations, exclusions, inat_get, read_spaces  # noqa: E402
-from update_featured_species import REFERENCE_PLACE, area_for, corridor_bbox, species_counts  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # for areas.py, even under python -I
+from areas import (ROOT, all_observations, area_for, count_observations, exclusions, inat_get,  # noqa: E402
+                   introduced_species, read_spaces, species_counts)
 
 USER_AGENT = "open-space-corridor species network (iNaturalist user: brettjackson)"
 GROUPS = [
-    {"id": "bees", "label": "Bees", "taxon_id": 47221},                     # Apidae
+    {"id": "bees", "label": "Bees", "taxon_id": 630955},                       # Anthophila
     {"id": "lepidoptera", "label": "Butterflies & Moths", "taxon_id": 47157},  # Lepidoptera
-    {"id": "birds", "label": "Birds", "taxon_id": 3},                      # Aves
+    {"id": "birds", "label": "Birds", "taxon_id": 3},                          # Aves
 ]
 OUT = ROOT / "js" / "species_network.js"
 
@@ -48,33 +52,36 @@ def describe(taxon):
     }
 
 
+def in_group(taxon, group):
+    return group["taxon_id"] in (taxon.get("ancestor_ids") or [])
+
+
 def main():
     spaces = read_spaces()
-    introduced = set(species_counts({**corridor_bbox(spaces), "place_id": REFERENCE_PLACE, "introduced": "true"}))
+    introduced = introduced_species(spaces, USER_AGENT)
     print(f"{len(introduced)} introduced species around the corridor (excluded)")
 
-    species = {}  # species id -> display info
+    species = {}          # species id -> display info
     needs_lookup = set()  # species reached only through a subspecies
     by_space = {}
-    effort = {}  # space -> group -> observation count
+    effort = {}           # space -> group -> observation count (any rank)
     for spc in spaces:
         area, _ = area_for(spc)
         if exclusions(spc):
             observed = [o["taxon"] for o in all_observations(spc, USER_AGENT, area) if o.get("taxon")]
+            taxa_seen = [t for t in observed if t.get("rank_level", 100) <= 10]
         else:
             observed = None
+            taxa_seen = [t for _, t in species_counts(area, USER_AGENT).values()]
         by_space[spc["id"]] = {}
         effort[spc["id"]] = {}
         for group in GROUPS:
             if observed is not None:
-                taxa = [t for t in observed if group["taxon_id"] in (t.get("ancestor_ids") or [])]
-                effort[spc["id"]][group["id"]] = len(taxa)
+                effort[spc["id"]][group["id"]] = sum(1 for t in observed if in_group(t, group))
             else:
-                counted = species_counts({**area, "taxon_id": group["taxon_id"]}).values()
-                taxa = [t for _, t in counted]
-                effort[spc["id"]][group["id"]] = sum(n for n, _ in counted)
+                effort[spc["id"]][group["id"]] = count_observations(area, USER_AGENT, taxon_id=group["taxon_id"])
             ids = set()
-            for taxon in taxa:
+            for taxon in (t for t in taxa_seen if in_group(t, group)):
                 sid = species_id(taxon)
                 if sid is None or sid in introduced or taxon["id"] in introduced:
                     continue
@@ -84,7 +91,8 @@ def main():
                 elif sid not in species:
                     needs_lookup.add(sid)
             by_space[spc["id"]][group["id"]] = sorted(ids)
-        print(f"{spc['id']}: " + ", ".join(f"{len(by_space[spc['id']][g['id']])} {g['id']}" for g in GROUPS))
+        print(f"{spc['id']}: " + ", ".join(
+            f"{len(by_space[spc['id']][g['id']])} {g['id']} ({effort[spc['id']][g['id']]} obs.)" for g in GROUPS))
 
     # Species seen only as subspecies need their own names and photos
     missing = sorted(needs_lookup - set(species))
