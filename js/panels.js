@@ -4,6 +4,9 @@
 
 const FEATURED = window.FEATURED_SPECIES || { by_space: {}, spaces_compared: 0 };
 const NETWORK_DATA = window.SPECIES_NETWORK || { groups: [], species: {}, by_space: {}, observations: {} };
+// Birds first (the most complete data), then any other groups in the data file's order
+const GROUP_ORDER = ["birds", "bees", "lepidoptera"];
+NETWORK_DATA.groups.sort((a, b) => (GROUP_ORDER.indexOf(a.id) + 1 || 99) - (GROUP_ORDER.indexOf(b.id) + 1 || 99));
 
 function shortName(spc) {
     return spc.title.replace(/ Open Space$/, "");
@@ -122,21 +125,21 @@ function connectionsList(spc, spaces, group_id, hrefFor) {
     const label = groupLabel(group_id).toLowerCase();
     const ul = el("ul", "connections net-" + group_id);
     connectionsOf(spc, spaces, group_id).forEach(({ other, link }) => {
-        const tooThin = link.similarity === null || link.thin;
+        // Every comparable pair opens its comparison; with nothing on either side, help instead
         const row = el("a", "connection" + (link.gap ? " is-gap" : ""));
-        row.href = tooThin ? helpHref(thinnerSpace(link, group_id)) : hrefFor(other);
+        row.href = link.selectable ? hrefFor(other) : helpHref(thinnerSpace(link, group_id));
+        row.dataset.space = other.id; // hovering the row highlights that space on the landing map
         row.appendChild(el("span", "connection-name", shortName(other)));
-        if (tooThin) {
-            const fewest = thinnerSpace(link, group_id);
-            const { obs } = spaceEffort(NETWORK_DATA, fewest.id, group_id);
-            row.appendChild(el("span", "connection-detail",
-                `Too few records to compare (${obs.toLocaleString()} obs. at ${shortName(fewest)}) · help add some →`));
+        const fewest = thinnerSpace(link, group_id);
+        const few = `few records (${spaceEffort(NETWORK_DATA, fewest.id, group_id).obs.toLocaleString()} obs. at ${shortName(fewest)})`;
+        if (link.similarity === null) {
+            row.appendChild(el("span", "connection-detail", link.selectable ? `Nothing to compare yet · ${few}` : "No observations at either space yet · help add some →"));
         } else if (link.shared === 0) {
-            row.appendChild(el("span", "connection-detail", `No shared ${label} recorded yet`));
+            row.appendChild(el("span", "connection-detail", `No shared ${label} recorded yet` + (link.thin ? ` · ${few}` : "")));
         } else {
             const pct = Math.round(link.similarity * 100);
-            row.appendChild(el("span", "connection-detail", `${link.shared} shared · ${pct}% similar`));
-            const bar = el("span", "connection-bar");
+            row.appendChild(el("span", "connection-detail", `${link.shared} shared · ${pct}% similar` + (link.thin ? ` · ${few}` : "")));
+            const bar = el("span", "connection-bar" + (link.thin ? " is-thin" : ""));
             bar.style.setProperty("--pct", pct + "%");
             bar.setAttribute("aria-hidden", "true");
             row.appendChild(bar);

@@ -25,10 +25,10 @@ from areas import (ROOT, all_observations, area_for, count_observations, exclusi
                    introduced_species, read_spaces, species_counts)
 
 USER_AGENT = "open-space-corridor species network (iNaturalist user: brettjackson)"
-GROUPS = [
+GROUPS = [  # in display order: birds first
+    {"id": "birds", "label": "Birds", "taxon_id": 3},                          # Aves
     {"id": "bees", "label": "Bees", "taxon_id": 630955},                       # Anthophila
     {"id": "lepidoptera", "label": "Butterflies & Moths", "taxon_id": 47157},  # Lepidoptera
-    {"id": "birds", "label": "Birds", "taxon_id": 3},                          # Aves
 ]
 OUT = ROOT / "js" / "species_network.js"
 

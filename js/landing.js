@@ -118,12 +118,13 @@ function spaceSummaryView(spc) {
         parts.push(el("p", "panel-lede", "How much of what lives here is shared with its nearest neighbors."));
         const ul = el("ul", "connection-groups");
         NETWORK_DATA.groups.forEach((g) => {
-            const best = connectionsOf(spc, located, g.id).find((c) => !c.link.gap);
+            const links = connectionsOf(spc, located, g.id);
+            const best = links.find((c) => !c.link.gap) || links.find((c) => c.link.shared > 0);
             const row = el("a", "connection connection-group net-" + g.id);
             row.href = hashFor({ tab: g.id, space: spc.id });
             row.appendChild(el("span", "connection-name", g.label));
             row.appendChild(el("span", "connection-detail", best
-                ? `Most like ${shortName(best.other)} (${Math.round(best.link.similarity * 100)}%)`
+                ? `Most like ${shortName(best.other)} (${Math.round(best.link.similarity * 100)}%${best.link.thin ? ", few records" : ""})`
                 : "More observations needed"));
             const li = el("li");
             li.appendChild(row);
@@ -148,12 +149,13 @@ function groupView(group_id) {
         .sort((x, y) => y.n - x.n || y.obs - x.obs)
         .forEach(({ spc, n, obs, low }) => {
             const a = el("a", "network-count-row");
+            a.dataset.space = spc.id;
             a.href = hashFor({ tab: group_id, space: spc.id });
             a.append(el("span", null, shortName(spc)), el("span", "network-count", `${n} species · ${obs.toLocaleString()} obs.`));
             const li = el("li");
             li.appendChild(a);
             if (low) {
-                const flag = el("a", "network-flag", obs === 0 ? `Be the first to record ${label} here →` : "More observations needed · how to help →");
+                const flag = el("a", "network-flag", obs === 0 ? `Be the first to record ${label} here →` : "More observations needed →");
                 flag.href = helpHref(spc);
                 li.appendChild(flag);
             }
@@ -189,6 +191,7 @@ function comparisonView(a, b, group_id) {
     [a, b].forEach((spc, i) => {
         if (i) title.append(" ↔ ");
         const link = el("a", null, shortName(spc));
+        link.dataset.space = spc.id;
         link.href = hashFor({ tab: group_id, space: spc.id });
         title.appendChild(link);
     });
@@ -216,7 +219,15 @@ function comparisonView(a, b, group_id) {
             columns.appendChild(right ? networkSpeciesItem(id, "div") : gap(shortName(b)));
         });
     });
-    return [backButton("← All spaces", () => go({ tab: group_id })), title, lede, columns];
+    const parts = [backButton("← All spaces", () => go({ tab: group_id })), title, lede];
+    const fewest = [a, b].map((spc) => ({ spc, ...spaceEffort(NETWORK_DATA, spc.id, group_id) })).sort((x, y) => x.obs - y.obs)[0];
+    if (fewest.low) {
+        const note = el("a", "network-flag comparison-caveat",
+            `Based on few observations (${fewest.obs.toLocaleString()} at ${shortName(fewest.spc)}), so this may change a lot · help add some →`);
+        note.href = helpHref(fewest.spc);
+        parts.push(note);
+    }
+    return [...parts, columns];
 }
 
 function panelFor(s) {
@@ -241,6 +252,31 @@ function renderPanel() {
 // ---------- Map ----------
 
 const marker_parts = {}; // space id -> { wrap, card, outline }
+
+// Highlight a space on the map as if it were hovered: its outline lights up, its marker or
+// dot is ringed, and in a corridor view only its links stay bright
+function highlightSpace(id, on) {
+    const parts = marker_parts[id];
+    if (!parts) return;
+    parts.outline?.eachLayer((layer) => layer.getElement()?.classList.toggle("active", on));
+    parts.wrap.classList.toggle("is-hover", on);
+    network?.focus(on ? id : null);
+}
+
+// Hovering (or tabbing to) a space's name in the panel highlights it on the map, without
+// replacing what the panel shows
+let panel_hover = null;
+function panelHover(e) {
+    const id = e.target.closest?.("[data-space]")?.dataset.space || null;
+    if (id === panel_hover) return;
+    if (panel_hover) highlightSpace(panel_hover, false);
+    panel_hover = id;
+    if (id) highlightSpace(id, true);
+}
+panel.addEventListener("pointerover", panelHover);
+panel.addEventListener("focusin", panelHover);
+panel.addEventListener("pointerleave", () => panelHover({ target: panel }));
+panel.addEventListener("focusout", (e) => { if (!panel.contains(e.relatedTarget)) panelHover({ target: panel }); });
 
 function render() {
     document.querySelectorAll("#panel-tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === state.tab)));
@@ -295,9 +331,11 @@ function useListLayout() {
     document.getElementById("landing").classList.remove("landing");
 }
 
+// The panel header: a "Corridors" toggle with one option per species group, then the
+// Signature Species view. All of them are tabs of one tab list, in this visual order.
 function buildTabs() {
     const tabs = document.getElementById("panel-tabs");
-    TABS.forEach((t) => {
+    const makeTab = (t) => {
         const b = el("button", null, t.label);
         b.type = "button";
         b.role = "tab";
@@ -306,8 +344,22 @@ function buildTabs() {
         b.setAttribute("aria-controls", "panel-content");
         // Switching tabs keeps the selected space, so you can compare its groups
         b.addEventListener("click", () => { if (t.id !== state.tab) go({ tab: t.id, space: state.space }); });
-        tabs.appendChild(b);
-    });
+        return b;
+    };
+    if (NETWORK_DATA.groups.length > 0) {
+        const corridors = el("div", "corridor-toggle");
+        const label = el("span", "corridor-toggle-label", "Corridors");
+        label.id = "corridors-label";
+        const options = el("div", "segmented");
+        options.setAttribute("role", "group");
+        options.setAttribute("aria-labelledby", "corridors-label");
+        NETWORK_DATA.groups.forEach((g) => options.appendChild(makeTab(g)));
+        corridors.append(label, options);
+        tabs.appendChild(corridors);
+    }
+    const signature = makeTab(TABS[0]);
+    signature.classList.add("tab-pill");
+    tabs.appendChild(signature);
     // Left/right arrows move between tabs, as screen-reader users expect of a tab list
     tabs.addEventListener("keydown", (e) => {
         if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
@@ -381,20 +433,15 @@ function buildMap() {
         };
 
         // Hover previews: the panel (when nothing is selected), the outline and the space's links
-        const setOutline = (on) => outline?.eachLayer((layer) => layer.getElement()?.classList.toggle("active", on));
         const enter = () => {
             placeCard();
-            setOutline(true);
-            network?.focus(spc.id);
+            highlightSpace(spc.id, true);
             if (state.tab === "signature" && !state.space) {
                 preview_space = spc.id;
                 renderPanel();
             }
         };
-        const leave = () => {
-            setOutline(false);
-            network?.focus(null);
-        };
+        const leave = () => highlightSpace(spc.id, false);
         card.addEventListener("pointerenter", enter);
         card.addEventListener("focus", enter);
         card.addEventListener("pointerleave", leave);

@@ -26,7 +26,8 @@ function spaceDistanceKm(a, b) {
 // Every linked pair for a group: each space joined to its nearest few, as unordered pairs.
 // Each link: { a, b, shared, sizeA, sizeB, similarity (0-1, or null when either list is
 // empty), thin: either space has too few observations of the group for the similarity to
-// mean much, gap: the pair can't be compared, shares nothing yet, or is thin }
+// mean much, gap: the pair can't be compared, shares nothing yet, or is thin (drawn dashed),
+// selectable: at least one space has species, so the comparison has something to show }
 function corridorLinks(spaces, data, group) {
     const speciesAt = (spc) => new Set(data.by_space[spc.id]?.[group] || []);
     const pairs = new Map();
@@ -50,6 +51,7 @@ function corridorLinks(spaces, data, group) {
             sizeB: sb.size,
             similarity: comparable ? (2 * shared) / (sa.size + sb.size) : null,
             gap: !comparable || shared === 0 || thin,
+            selectable: sa.size + sb.size > 0,
         };
     });
 }
@@ -130,16 +132,20 @@ function createNetwork(map, spaces, data, handlers) {
         const max = Math.max(1, ...counts);
         const label = (data.groups.find((g) => g.id === group)?.label || "species").toLowerCase();
 
-        corridorLinks(spaces, data, group).forEach(({ a, b, shared, similarity, thin, gap }) => {
+        corridorLinks(spaces, data, group).forEach(({ a, b, shared, similarity, thin, gap, selectable }) => {
             const pa = map.latLngToLayerPoint(a.location), pb = map.latLngToLayerPoint(b.location);
             const c = controlPoint(pa, pb);
             const t0 = Math.min(0.4, HALO_MIN_RADIUS / (pa.distanceTo(pb) || 1));
             const line = curveLine(pa, c, pb, t0, 1 - t0);
 
             let tip, weight;
-            if (similarity === null || thin) {
+            if (similarity === null) {
                 tip = `${a.title} ↔ ${b.title}: too few observations to compare yet`;
                 weight = 1.5;
+            } else if (thin) {
+                // Tentative: drawn dashed, but still as thick as its similarity so its strength shows
+                tip = `${a.title} ↔ ${b.title}: ${shared} shared ${label} · ${Math.round(similarity * 100)}% similar, from few observations`;
+                weight = shared === 0 ? 1.5 : LINK_MIN_WEIGHT + similarity * (LINK_MAX_WEIGHT - LINK_MIN_WEIGHT);
             } else if (shared === 0) {
                 tip = `${a.title} ↔ ${b.title}: no shared ${label} recorded yet`;
                 weight = 1.5;
@@ -147,10 +153,11 @@ function createNetwork(map, spaces, data, handlers) {
                 tip = `${a.title} ↔ ${b.title}: ${shared} shared ${label} · ${Math.round(similarity * 100)}% similar`;
                 weight = LINK_MIN_WEIGHT + similarity * (LINK_MAX_WEIGHT - LINK_MIN_WEIGHT);
             }
-            const link = L.polyline(toLatLngs(line), { className: `net-link${gap ? " is-gap" : ""} net-${group}`, weight, interactive: true })
+            const cls = `net-link${gap ? " is-gap" : ""}${thin && shared > 0 ? " is-thin" : ""}${selectable ? "" : " is-unselectable"} net-${group}`;
+            const link = L.polyline(toLatLngs(line), { className: cls, weight, interactive: true })
                 .bindTooltip(tip, { sticky: true, className: "net-tooltip" })
                 .addTo(layer);
-            if (!gap) {
+            if (selectable) {
                 link.on("click", (e) => {
                     L.DomEvent.stopPropagation(e); // so the map's own click handler doesn't clear it
                     link.getElement()?.blur(); // the glow marks the selection, not the browser's focus box
