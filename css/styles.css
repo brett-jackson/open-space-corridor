@@ -265,17 +265,56 @@ code { background: var(--outline); padding: 2px 6px; border-radius: 4px; }
 .panel-back:hover { color: var(--hover-outline); }
 .panel-back:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 2px; border-radius: 4px; }
 .panel-title-small { font-size: 1.45rem; margin-bottom: 6px; }
-.network-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.network-columns h4 { margin: 0 0 6px; color: var(--text-muted); font-size: 0.72rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
-.network-species { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.network-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; row-gap: 2px; align-items: center; }
+.network-columns h4 { margin: 0 0 6px; color: var(--text-muted); font-size: 0.72rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; align-self: end; }
+.network-gap { align-self: stretch; margin: 3px 0; border-radius: 6px; border: 1px dashed var(--outline); }
 .network-species a { display: flex; align-items: center; gap: 8px; padding: 3px; border-radius: 6px; color: inherit; text-decoration: none; font-size: 0.82rem; line-height: 1.25; }
 .network-species a:hover { background: rgba(255, 255, 255, 0.05); }
 .network-species a:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 1px; }
 .network-species img, .network-species .placeholder { flex: none; width: 28px; height: 28px; border-radius: 4px; object-fit: cover; background: var(--outline); }
 
 /* Network arrows on the map: one hue per group, outlined so they read over satellite imagery */
-.net-arrow { stroke: rgba(0, 0, 0, 0.55); stroke-width: 1; stroke-linejoin: round; fill-opacity: 0.78; cursor: pointer; transition: fill-opacity 0.15s ease; }
+.net-arrow { stroke: rgba(0, 0, 0, 0.55); stroke-width: 1; stroke-linejoin: round; fill-opacity: 0.6; cursor: pointer; transition: fill-opacity 0.15s ease, stroke-opacity 0.15s ease; }
 .net-arrow:hover { fill-opacity: 1; stroke: #fff; }
+.net-arrow.is-out { fill-opacity: 0.95; }
+.net-arrow.is-in { fill-opacity: 0.4; stroke: rgba(255, 255, 255, 0.8); }
+.net-arrow.is-dim { fill-opacity: 0.08; stroke-opacity: 0.15; }
+
+/* Network mode: markers shrink to dots centered on each space, with a short name label */
+.map-label { display: none; }
+.space-map.network-mode .map-marker > div::after { display: none; }
+.space-map.network-mode .map-card,
+.space-map.network-mode .map-card:hover,
+.space-map.network-mode .map-card:focus-visible {
+    width: 20px;
+    bottom: -10px; /* centered on the place's point */
+    top: auto;
+    border-radius: 50%;
+    transform: translateX(-50%);
+}
+.space-map.network-mode .map-card:hover, .space-map.network-mode .map-card:focus-visible { border-color: var(--hover-outline); }
+/* Out-rank the expand-downward placement, which would lift a dot off its space */
+.space-map.network-mode .map-marker > div.down .map-card { top: auto; bottom: -10px; }
+/* The map element is itself Leaflet's container, so chain the classes to out-rank the hover sizes */
+.space-map.network-mode.leaflet-container .leaflet-marker-pane .map-card img,
+.space-map.network-mode.leaflet-container .leaflet-marker-pane .map-card:hover img,
+.space-map.network-mode.leaflet-container .leaflet-marker-pane .map-card:focus-visible img,
+.space-map.network-mode .map-card .placeholder,
+.space-map.network-mode .map-card:hover .placeholder { height: 16px; }
+.space-map.network-mode .map-card-body { display: none; }
+.space-map.network-mode .map-label {
+    display: block;
+    position: absolute;
+    left: calc(50% + 14px);
+    bottom: -9px;
+    padding: 1px 7px;
+    border-radius: 4px;
+    background: rgba(16, 22, 28, 0.8);
+    color: var(--text);
+    font: 600 12px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    white-space: nowrap;
+    pointer-events: none;
+}
 .net-bees { fill: #f5b83d; }
 .net-lepidoptera { fill: #c792ff; }
 .net-birds { fill: #5cc8ff; }

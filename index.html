@@ -107,8 +107,13 @@
       }
       a.appendChild(body);
 
+      const label = document.createElement("span");
+      label.className = "map-label";
+      label.textContent = spc.title.replace(/ Open Space$/, "");
+      label.setAttribute("aria-hidden", "true");
+
       const wrap = document.createElement("div");
-      wrap.appendChild(a);
+      wrap.append(a, label);
       return wrap;
     }
 
@@ -222,9 +227,10 @@
       return network_data.groups.find((g) => g.id === group_id)?.label || group_id;
     }
 
-    function speciesItem(id) {
+    function speciesItem(id, tag = "li") {
       const sp = network_data.species[id] || { name: "Taxon " + id, common_name: "", photo: "" };
-      const li = document.createElement("li");
+      const li = document.createElement(tag);
+      li.className = "network-species";
       const a = document.createElement("a");
       a.href = "https://www.inaturalist.org/taxa/" + id;
       a.target = "_blank";
@@ -301,25 +307,32 @@
       back.textContent = "← All spaces";
       back.addEventListener("click", () => showGroupIntro(group_id));
 
+      const short = (spc) => spc.title.replace(/ Open Space$/, "");
       const title = document.createElement("h2");
       title.className = "panel-title panel-title-small";
-      title.textContent = `${from.title} → ${to.title}`;
+      title.textContent = `${short(from)} → ${short(to)}`;
       const lede = document.createElement("p");
       lede.className = "panel-lede";
-      lede.textContent = `${shared.length} of ${from.title}'s ${at_from.length} native ${label} species ` +
-        `(${Math.round((shared.length / at_from.length) * 100)}%) have also been seen at ${to.title}.`;
+      lede.textContent = `${shared.length} of the ${at_from.length} native ${label} seen at ${short(from)} ` +
+        `(${Math.round((shared.length / at_from.length) * 100)}%) have also been seen at ${short(to)}.`;
 
+      // Rows line up: each of A's species on the left, and beside it the same species if B has it
       const columns = document.createElement("div");
       columns.className = "network-columns";
-      [[`At ${from.title}`, at_from], [`Also at ${to.title}`, shared]].forEach(([heading, ids]) => {
-        const col = document.createElement("div");
+      [`At ${short(from)} (${at_from.length})`, `Also at ${short(to)} (${shared.length})`].forEach((text) => {
         const h = document.createElement("h4");
-        h.textContent = `${heading} (${ids.length})`;
-        const ul = document.createElement("ul");
-        ul.className = "network-species";
-        sortedSpecies(ids).forEach((id) => ul.appendChild(speciesItem(id)));
-        col.append(h, ul);
-        columns.appendChild(col);
+        h.textContent = text;
+        columns.appendChild(h);
+      });
+      sortedSpecies(at_from).forEach((id) => {
+        columns.appendChild(speciesItem(id, "div"));
+        if (at_to.has(id)) columns.appendChild(speciesItem(id, "div"));
+        else {
+          const gap = document.createElement("div");
+          gap.className = "network-gap";
+          gap.setAttribute("aria-label", "Not seen at " + short(to));
+          columns.appendChild(gap);
+        }
       });
       panel.replaceChildren(back, title, lede, columns);
       panel.scrollTop = 0;
@@ -328,6 +341,7 @@
     function selectTab(tab_id) {
       active_tab = tab_id;
       document.querySelectorAll("#panel-tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === tab_id)));
+      map_el.classList.toggle("network-mode", tab_id !== "signature");
       if (tab_id === "signature") {
         network?.hide();
         panel_space = null;
@@ -411,6 +425,10 @@
         // and grow it downward from the thumbnail when there isn't room above the pin
         const card = marker_html.firstChild;
         const placeCard = () => {
+          if (map_el.classList.contains("network-mode")) {
+            marker_html.classList.remove("down"); // compact dots never expand, so stay centered
+            return;
+          }
           const pt = map.latLngToContainerPoint(spc.location);
           const half = EXPANDED_CARD.w / 2 + 8;
           const shift = Math.max(half - pt.x, Math.min(0, map_el.clientWidth - half - pt.x));
@@ -422,6 +440,10 @@
         // The side panel keeps the last space shown, so the pointer can travel over to it
         card.addEventListener("pointerenter", () => showPanel(spc));
         card.addEventListener("focus", () => showPanel(spc));
+        card.addEventListener("pointerenter", () => network?.focus(spc.id));
+        card.addEventListener("focus", () => network?.focus(spc.id));
+        card.addEventListener("pointerleave", () => network?.focus(null));
+        card.addEventListener("blur", () => network?.focus(null));
 
         // Hovering or focusing either the marker or the outline highlights the outline
         if (outline) {

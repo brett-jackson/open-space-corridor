@@ -7,13 +7,32 @@
 const NETWORK_MAX_WIDTH = 22;    // px, for the space with the most species in the group
 const NETWORK_MIN_WIDTH = 1.5;   // px, so a single shared species stays visible
 const NETWORK_BEND = 0.16;       // curve height as a fraction of the distance between spaces
-const NETWORK_END_GAP = 16;      // px left clear around each space's pin
+const NETWORK_END_GAP = 18;      // px left clear around each space's dot
 const NETWORK_HEAD = 12;         // px length of the arrowhead
 const NETWORK_STEPS = 28;        // samples along each curve
 
 function createNetwork(map, spaces, data, onArrowClick) {
     const layer = L.layerGroup();
     let group = null;
+    let arrows = [];         // { poly, from, to } for the current group
+    let focused_space = null; // a hovered space: only its arrows stay bright
+    let focused_pair = null;  // a hovered arrow: only that pair stays bright
+
+    // Out of the focused space = full color, into it = paler, everything else faded
+    function applyFocus() {
+        arrows.forEach(({ poly, from, to }) => {
+            const el = poly.getElement();
+            if (!el) return;
+            let state = "";
+            if (focused_pair) {
+                state = focused_pair.has(from.id) && focused_pair.has(to.id) ? "is-out" : "is-dim";
+            } else if (focused_space) {
+                state = from.id === focused_space ? "is-out" : to.id === focused_space ? "is-in" : "is-dim";
+            }
+            el.classList.remove("is-out", "is-in", "is-dim");
+            if (state) el.classList.add(state);
+        });
+    }
 
     function speciesAt(spc) {
         return new Set(data.by_space[spc.id]?.[group] || []);
@@ -54,6 +73,7 @@ function createNetwork(map, spaces, data, onArrowClick) {
 
     function draw() {
         layer.clearLayers();
+        arrows = [];
         if (!group) return;
         const counts = spaces.map((spc) => speciesAt(spc).size);
         const max = Math.max(1, ...counts);
@@ -75,16 +95,20 @@ function createNetwork(map, spaces, data, onArrowClick) {
                 [[a, b, sa, pa, pb], [b, a, sb, pb, pa]].forEach(([from, to, set, pf, pt]) => {
                     const pts = arrowPolygon(pf, c, pt, width(set.size), width(shared));
                     const pct = Math.round((shared / set.size) * 100);
-                    L.polygon(pts.map((p) => map.layerPointToLatLng(p)), {
+                    const poly = L.polygon(pts.map((p) => map.layerPointToLatLng(p)), {
                         className: "net-arrow net-" + group,
                         interactive: true,
                     })
                         .bindTooltip(`${from.title}: ${shared} of ${set.size} also at ${to.title} (${pct}%)`, { sticky: true, className: "net-tooltip" })
                         .on("click", () => onArrowClick(from, to, group))
+                        .on("mouseover", () => { focused_pair = new Set([from.id, to.id]); applyFocus(); })
+                        .on("mouseout", () => { focused_pair = null; applyFocus(); })
                         .addTo(layer);
+                    arrows.push({ poly, from, to });
                 });
             }
         }
+        applyFocus();
     }
 
     // Widths are in screen pixels, so the arrows are rebuilt whenever the zoom changes
@@ -98,8 +122,14 @@ function createNetwork(map, spaces, data, onArrowClick) {
         },
         hide() {
             group = null;
+            arrows = [];
             layer.clearLayers();
             layer.remove();
+        },
+        // Highlight one space's arrows (null clears it)
+        focus(space_id) {
+            focused_space = space_id;
+            applyFocus();
         },
     };
 }

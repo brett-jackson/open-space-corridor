@@ -64,7 +64,7 @@ def main():
     parser.add_argument("--settle", type=int, default=2500, help="ms to wait after load for tiles, fonts and API calls")
     parser.add_argument("--full-page", action="store_true", help="capture the whole page when no shot steps are given")
     parser.add_argument("--dark", action="store_true", help="emulate a dark color scheme")
-    args = parser.parse_args()
+    args = parser.parse_intermixed_args()  # options may come before, between or after the steps
 
     server = serve()
     url = f"http://127.0.0.1:{server.server_address[1]}/{args.page.lstrip('/')}"
