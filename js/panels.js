@@ -67,9 +67,6 @@ function signatureSection(spc, heading_tag = "h3") {
         ol.appendChild(li);
     });
     parts.push(ol);
-    parts.push(el("p", "panel-note",
-        "Ranked by TF-IDF, which weighs how often a species is observed here against how many of the other spaces it appears in. " +
-        "Species introduced to Colorado are left out. Photos from iNaturalist; hover a photo for its credit."));
     return parts;
 }
 

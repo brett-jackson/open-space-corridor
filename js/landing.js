@@ -115,7 +115,7 @@ function spaceSummaryView(spc) {
     const parts = [...spaceHeader(spc), ...signatureSection(spc)];
     if (NETWORK_DATA.groups.length > 0) {
         parts.push(el("h3", "panel-heading", "Connections"));
-        parts.push(el("p", "panel-lede", "How much of what lives here is shared with its nearest neighbors."));
+        parts.push(el("p", "panel-lede", "Similarities between this space and neighboring spaces."));
         const ul = el("ul", "connection-groups");
         NETWORK_DATA.groups.forEach((g) => {
             const links = connectionsOf(spc, located, g.id);
