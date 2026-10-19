@@ -7,6 +7,8 @@ Lepidoptera) and native birds (class Aves). "Native" means not listed by iNatura
 introduced in Colorado, matching the signature species. Observations identified below
 species (subspecies, varieties) count toward their species, so two spaces' lists compare
 like with like. Spaces with excluded boxes are counted from their individual observations.
+It also records each space's verifiable observation count per group (native or not), which
+the map uses to flag spaces where more observations are needed.
 
     python3 scripts/update_species_network.py
 """
@@ -54,6 +56,7 @@ def main():
     species = {}  # species id -> display info
     needs_lookup = set()  # species reached only through a subspecies
     by_space = {}
+    effort = {}  # space -> group -> observation count
     for spc in spaces:
         area, _ = area_for(spc)
         if exclusions(spc):
@@ -61,11 +64,15 @@ def main():
         else:
             observed = None
         by_space[spc["id"]] = {}
+        effort[spc["id"]] = {}
         for group in GROUPS:
             if observed is not None:
                 taxa = [t for t in observed if group["taxon_id"] in (t.get("ancestor_ids") or [])]
+                effort[spc["id"]][group["id"]] = len(taxa)
             else:
-                taxa = [t for _, t in species_counts({**area, "taxon_id": group["taxon_id"]}).values()]
+                counted = species_counts({**area, "taxon_id": group["taxon_id"]}).values()
+                taxa = [t for _, t in counted]
+                effort[spc["id"]][group["id"]] = sum(n for n, _ in counted)
             ids = set()
             for taxon in taxa:
                 sid = species_id(taxon)
@@ -93,6 +100,7 @@ def main():
             "groups": [{"id": g["id"], "label": g["label"]} for g in GROUPS],
             "species": {str(k): species[k] for k in sorted(used) if k in species},
             "by_space": by_space,
+            "observations": effort,
         }, separators=(",", ":")) + ";\n"
     )
     print(f"wrote {OUT.relative_to(ROOT)} ({len(used)} species)")

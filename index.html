@@ -270,36 +270,74 @@
     }
 
     function showGroupIntro(group_id) {
-      const label = groupLabel(group_id);
+      network?.clearSelection();
+      const label = groupLabel(group_id).toLowerCase();
+      const low = network?.lowEffort ?? 30;
       const intro = document.createElement("p");
       intro.className = "panel-lede";
-      intro.textContent = `Each arrow starts as wide as one space's list of native ${label.toLowerCase()} and ends as wide as the part of that list also seen at the other space. Click an arrow to compare.`;
+      intro.textContent = `Neighboring open spaces that share native ${label} are linked, hinting at how wildlife can move along the corridor. Click a line to compare.`;
+      const parts = [panelHeading("Native " + groupLabel(group_id)), intro];
+
+      {
+        const legend = document.createElement("ul");
+        legend.className = "network-legend net-" + group_id;
+        [
+          ["legend-halo", "Halo size: native species seen there"],
+          ["legend-line", "Line thickness: how similar two neighbors' species lists are"],
+          ["legend-gap", "Dashed: more observations needed"],
+        ].forEach(([cls, text]) => {
+          const li = document.createElement("li");
+          const key = document.createElement("span");
+          key.className = "legend-key " + cls;
+          key.setAttribute("aria-hidden", "true");
+          li.append(key, text);
+          legend.appendChild(li);
+        });
+        parts.push(legend);
+      }
+
       const ol = document.createElement("ol");
       ol.className = "network-counts";
       located
-        .map((spc) => ({ spc, n: (network_data.by_space[spc.id]?.[group_id] || []).length }))
-        .sort((x, y) => y.n - x.n)
-        .forEach(({ spc, n }) => {
+        .map((spc) => ({
+          spc,
+          n: (network_data.by_space[spc.id]?.[group_id] || []).length,
+          obs: network_data.observations?.[spc.id]?.[group_id] ?? 0,
+        }))
+        .sort((x, y) => y.n - x.n || y.obs - x.obs)
+        .forEach(({ spc, n, obs }) => {
           const li = document.createElement("li");
           const name = document.createElement("span");
-          name.textContent = spc.title;
+          name.textContent = spc.title.replace(/ Open Space$/, "");
           const count = document.createElement("span");
           count.className = "network-count";
-          count.textContent = n === 1 ? "1 species" : `${n} species`;
+          count.textContent = `${n} species · ${obs.toLocaleString()} obs.`;
           li.append(name, count);
+          if (obs < low) {
+            li.classList.add("needs-data");
+            const flag = document.createElement("span");
+            flag.className = "network-flag";
+            flag.textContent = "More observations needed";
+            li.appendChild(flag);
+          }
           ol.appendChild(li);
         });
-      panel.replaceChildren(panelHeading("Native " + label), intro, ol);
+      parts.push(ol);
+      panel.replaceChildren(...parts);
       panel.scrollTop = 0;
     }
 
-    // Clicking an arrow from A to B: A's species, and the subset also seen at B
-    function showComparison(from, to, group_id) {
+    // Clicking a link between A and B: one row per species seen at either space, with a gap on
+    // the side where it hasn't been seen. Shared species first, then each space's own.
+    function showComparison(a, b, group_id) {
       if (active_tab !== group_id) return;
-      const at_from = network_data.by_space[from.id]?.[group_id] || [];
-      const at_to = new Set(network_data.by_space[to.id]?.[group_id] || []);
-      const shared = at_from.filter((id) => at_to.has(id));
+      const at_a = new Set(network_data.by_space[a.id]?.[group_id] || []);
+      const at_b = new Set(network_data.by_space[b.id]?.[group_id] || []);
+      const shared = [...at_a].filter((id) => at_b.has(id));
+      const only_a = [...at_a].filter((id) => !at_b.has(id));
+      const only_b = [...at_b].filter((id) => !at_a.has(id));
       const label = groupLabel(group_id).toLowerCase();
+      const short = (spc) => spc.title.replace(/ Open Space$/, "");
 
       const back = document.createElement("button");
       back.type = "button";
@@ -307,33 +345,44 @@
       back.textContent = "← All spaces";
       back.addEventListener("click", () => showGroupIntro(group_id));
 
-      const short = (spc) => spc.title.replace(/ Open Space$/, "");
       const title = document.createElement("h2");
       title.className = "panel-title panel-title-small";
-      title.textContent = `${short(from)} → ${short(to)}`;
+      title.textContent = `${short(a)} ↔ ${short(b)}`;
       const lede = document.createElement("p");
       lede.className = "panel-lede";
-      lede.textContent = `${shared.length} of the ${at_from.length} native ${label} seen at ${short(from)} ` +
-        `(${Math.round((shared.length / at_from.length) * 100)}%) have also been seen at ${short(to)}.`;
+      const similarity = Math.round((2 * shared.length) / (at_a.size + at_b.size) * 100);
+      lede.textContent = `${shared.length} native ${label} seen at both · ${only_a.length} only at ${short(a)} · ` +
+        `${only_b.length} only at ${short(b)} (${similarity}% similar).`;
 
-      // Rows line up: each of A's species on the left, and beside it the same species if B has it
       const columns = document.createElement("div");
       columns.className = "network-columns";
-      [`At ${short(from)} (${at_from.length})`, `Also at ${short(to)} (${shared.length})`].forEach((text) => {
+      [`${short(a)} (${at_a.size})`, `${short(b)} (${at_b.size})`].forEach((text) => {
         const h = document.createElement("h4");
         h.textContent = text;
         columns.appendChild(h);
       });
-      sortedSpecies(at_from).forEach((id) => {
-        columns.appendChild(speciesItem(id, "div"));
-        if (at_to.has(id)) columns.appendChild(speciesItem(id, "div"));
-        else {
-          const gap = document.createElement("div");
-          gap.className = "network-gap";
-          gap.setAttribute("aria-label", "Not seen at " + short(to));
-          columns.appendChild(gap);
-        }
+      const gap = (where) => {
+        const el = document.createElement("div");
+        el.className = "network-gap";
+        el.setAttribute("aria-label", "Not seen at " + where);
+        return el;
+      };
+      [
+        ["Seen at both", shared, true, true],
+        [`Only at ${short(a)}`, only_a, true, false],
+        [`Only at ${short(b)}`, only_b, false, true],
+      ].forEach(([heading, ids, left, right]) => {
+        if (ids.length === 0) return;
+        const section = document.createElement("div");
+        section.className = "network-section";
+        section.textContent = `${heading} (${ids.length})`;
+        columns.appendChild(section);
+        sortedSpecies(ids).forEach((id) => {
+          columns.appendChild(left ? speciesItem(id, "div") : gap(short(a)));
+          columns.appendChild(right ? speciesItem(id, "div") : gap(short(b)));
+        });
       });
+
       panel.replaceChildren(back, title, lede, columns);
       panel.scrollTop = 0;
     }
@@ -469,6 +518,10 @@
       // Network overlays (js/network.js), one per tab after Signature Species
       if (typeof createNetwork === "function" && network_data.groups.length > 0) {
         network = createNetwork(map, located, network_data, showComparison);
+        // Clicking empty map (not a line, and not the end of a drag) clears the selected link
+        map.on("click", () => {
+          if (active_tab !== "signature" && network.hasSelection()) showGroupIntro(active_tab);
+        });
       }
       buildTabs();
     }

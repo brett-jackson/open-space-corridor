@@ -248,7 +248,7 @@ code { background: var(--outline); padding: 2px 6px; border-radius: 4px; }
 .panel-tabs button[aria-selected="true"] { background: var(--text); border-color: var(--text); color: var(--bg); }
 .panel-tabs button:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 2px; }
 
-/* Network overview and arrow comparison */
+/* Network overview and link comparison */
 .network-counts { list-style: none; margin: 0; padding: 0; font-size: 0.9rem; }
 .network-counts li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--outline); }
 .network-count { color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -273,12 +273,43 @@ code { background: var(--outline); padding: 2px 6px; border-radius: 4px; }
 .network-species a:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 1px; }
 .network-species img, .network-species .placeholder { flex: none; width: 28px; height: 28px; border-radius: 4px; object-fit: cover; background: var(--outline); }
 
-/* Network arrows on the map: one hue per group, outlined so they read over satellite imagery */
-.net-arrow { stroke: rgba(0, 0, 0, 0.55); stroke-width: 1; stroke-linejoin: round; fill-opacity: 0.6; cursor: pointer; transition: fill-opacity 0.15s ease, stroke-opacity 0.15s ease; }
-.net-arrow:hover { fill-opacity: 1; stroke: #fff; }
-.net-arrow.is-out { fill-opacity: 0.95; }
-.net-arrow.is-in { fill-opacity: 0.4; stroke: rgba(255, 255, 255, 0.8); }
-.net-arrow.is-dim { fill-opacity: 0.08; stroke-opacity: 0.15; }
+/* Network overlays on the map: one hue per group, outlined so they read over satellite imagery */
+.net-bees { --net-color: #f5b83d; }
+.net-lepidoptera { --net-color: #c792ff; }
+.net-birds { --net-color: #5cc8ff; }
+.leaflet-tooltip.net-tooltip { background: var(--bg-box); border: 1px solid var(--outline); color: var(--text); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); }
+.leaflet-tooltip.net-tooltip::before { display: none; }
+.is-dim { opacity: 0.12; }
+
+/* Halos sized by species, lines by similarity, dashed where data is thin */
+.net-link { stroke: var(--net-color); stroke-opacity: 0.85; stroke-linecap: round; fill: none; cursor: pointer; filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.7)); transition: opacity 0.15s ease, stroke-opacity 0.15s ease; }
+.net-link:hover, .net-link.is-out { stroke-opacity: 1; }
+/* The selected link glows along its own shape instead of the browser's rectangular focus box */
+.net-link:focus { outline: none; }
+.net-link.is-selected, .net-link:focus-visible {
+    stroke-opacity: 1;
+    filter: drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 7px var(--net-color)) drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
+}
+.net-node.is-selected { stroke-width: 3; fill-opacity: 0.38; }
+.is-muted { opacity: 0.35; }
+.net-link.is-gap { stroke: #fff; stroke-opacity: 0.85; stroke-width: 2px; stroke-dasharray: 6 6; stroke-linecap: butt; cursor: default; }
+.net-flow { stroke: #fff; stroke-opacity: 0.9; stroke-linecap: round; stroke-dasharray: 0 22; fill: none; animation: net-flow 2.4s linear infinite; pointer-events: none; }
+@keyframes net-flow { to { stroke-dashoffset: -22; } }
+.net-node { stroke: var(--net-color); stroke-width: 2; fill: var(--net-color); fill-opacity: 0.22; filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.6)); transition: opacity 0.15s ease; }
+.net-node.needs-data { stroke-dasharray: 4 4; fill-opacity: 0.08; }
+.net-node.is-empty { stroke: #fff; stroke-opacity: 0.6; fill: none; }
+@media (prefers-reduced-motion: reduce) { .net-flow { animation: none; } }
+
+/* Panel legend and data-needed flags */
+.network-legend { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 0.8rem; color: var(--text-muted); }
+.network-legend li { display: flex; align-items: center; gap: 10px; }
+.legend-key { flex: none; width: 26px; height: 14px; }
+.legend-halo { width: 14px; margin: 0 6px; border-radius: 50%; border: 2px solid var(--net-color); background: color-mix(in srgb, var(--net-color) 22%, transparent); }
+.legend-line { height: 6px; border-radius: 3px; background: var(--net-color); }
+.legend-gap { height: 0; border-top: 2px dashed rgba(255, 255, 255, 0.6); }
+.network-counts li { flex-wrap: wrap; }
+.network-flag { flex-basis: 100%; margin-top: 2px; color: #f0c674; font-size: 0.75rem; }
+.network-section { grid-column: 1 / -1; margin: 10px 0 4px; padding-bottom: 4px; border-bottom: 1px solid var(--outline); color: var(--text-muted); font-size: 0.72rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
 
 /* Network mode: markers shrink to dots centered on each space, with a short name label */
 .map-label { display: none; }
@@ -315,11 +346,6 @@ code { background: var(--outline); padding: 2px 6px; border-radius: 4px; }
     white-space: nowrap;
     pointer-events: none;
 }
-.net-bees { fill: #f5b83d; }
-.net-lepidoptera { fill: #c792ff; }
-.net-birds { fill: #5cc8ff; }
-.leaflet-tooltip.net-tooltip { background: var(--bg-box); border: 1px solid var(--outline); color: var(--text); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); }
-.leaflet-tooltip.net-tooltip::before { display: none; }
 
 @media (max-width: 800px) {
     .landing { height: auto; }

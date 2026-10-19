@@ -14,7 +14,8 @@ Examples:
         "hover:.map-card >> nth=0" "shot:hovered.png" \\
         "click:#panel-tabs button[data-tab=birds]" "wait:1500" "shot:birds.png"
 
-Steps run in order: hover:<selector>, click:<selector>, wait:<ms>, scroll:<selector> (into
+Steps run in order: hover:<selector>, click:<selector>, clickat:<x>,<y> (a real mouse click
+at page coordinates), wait:<ms>, scroll:<selector> (into
 view), eval:<javascript>, shot:<file.png> (viewport), fullshot:<file.png> (whole page) and
 element:<selector>=<file.png>. With no shot steps, one viewport screenshot is saved.
 Screenshots go to .screenshots/ unless a path with a folder is given.
@@ -57,7 +58,7 @@ def out_path(name):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("page", help='page path relative to the site root, e.g. index.html or "space.html?id=metzger"')
-    parser.add_argument("steps", nargs="*", help="hover:/click:/wait:/scroll:/eval:/shot:/fullshot:/element: steps")
+    parser.add_argument("steps", nargs="*", help="hover:/click:/clickat:/wait:/scroll:/eval:/shot:/fullshot:/element: steps")
     parser.add_argument("--width", type=int, default=1440)
     parser.add_argument("--height", type=int, default=900)
     parser.add_argument("--scale", type=float, default=1, help="device pixel ratio (2 for a retina-like capture)")
@@ -92,6 +93,10 @@ def main():
                 page.wait_for_timeout(400)
             elif kind == "click":
                 page.click(value)
+                page.wait_for_timeout(400)
+            elif kind == "clickat":
+                x, y = (float(v) for v in value.split(","))
+                page.mouse.click(x, y)
                 page.wait_for_timeout(400)
             elif kind == "wait":
                 page.wait_for_timeout(int(value))
