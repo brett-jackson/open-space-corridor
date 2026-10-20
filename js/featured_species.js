@@ -428,7 +428,7 @@ window.FEATURED_SPECIES = {
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/312111/square.jpg",
     "attribution": "(c) Anne Toal, some rights reserved (CC BY)",
     "count": 7,
-    "research_grade": 6,
+    "research_grade": 7,
     "spaces": 1,
     "score": 4.0464
    },
