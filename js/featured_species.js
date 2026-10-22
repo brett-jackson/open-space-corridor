@@ -561,10 +561,10 @@ window.FEATURED_SPECIES = {
     "common_name": "Killdeer",
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/15053771/square.jpg",
     "attribution": "(c) world_lineage, some rights reserved (CC BY-NC), uploaded by world_lineage",
-    "count": 11,
-    "research_grade": 11,
+    "count": 12,
+    "research_grade": 12,
     "spaces": 3,
-    "score": 2.1055
+    "score": 2.1733
    },
    {
     "taxon_id": 28398,
