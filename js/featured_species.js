@@ -31,7 +31,7 @@ window.FEATURED_SPECIES = {
     "name": "Helianthus maximiliani",
     "common_name": "Maximilian sunflower",
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/1456982/square.JPG",
-    "attribution": "(c) smwhite, some rights reserved (CC BY-NC), uploaded by smwhite",
+    "attribution": "(c) smwhite, algunos derechos reservados (CC BY-NC), subido por smwhite",
     "count": 8,
     "research_grade": 2,
     "spaces": 1,
