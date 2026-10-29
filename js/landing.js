@@ -87,18 +87,6 @@ function spaceHeader(spc) {
     const parts = [el("h2", "panel-title", spc.title)];
     if (spc.subtitle) parts.push(el("p", "panel-subtitle", spc.subtitle));
     parts.push(exploreButton(spc));
-    // Quick iNaturalist tasks waiting here (js/help_tasks.js), linking to the space page's cards
-    const tasks = window.HELP_TASKS?.by_space?.[spc.id] || {};
-    const phrases = [
-        [tasks.phenology, (n) => `${n} flowering plants need a bloom status`],
-        [tasks.needs_id, (n) => `${n} IDs to confirm`],
-        [tasks.pollinator_plants, (n) => `${n} pollinators need a flower named`],
-    ].filter(([n]) => n > 0).sort((x, y) => y[0] - x[0]).slice(0, 2);
-    if (phrases.length > 0) {
-        const help = el("a", "panel-help-link", "" + phrases.map(([n, say]) => say(n.toLocaleString())).join(" · ") + " →");
-        help.href = helpHref(spc);
-        parts.push(help);
-    }
     return parts;
 }
 
@@ -125,7 +113,7 @@ function spaceSummaryView(spc) {
             row.appendChild(el("span", "connection-name", g.label));
             row.appendChild(el("span", "connection-detail", best
                 ? `Most like ${shortName(best.other)} (${Math.round(best.link.similarity * 100)}%${best.link.thin ? ", few records" : ""})`
-                : "More observations needed"));
+                : "More data needed"));
             const li = el("li");
             li.appendChild(row);
             ul.appendChild(li);
@@ -151,11 +139,11 @@ function groupView(group_id) {
             const a = el("a", "network-count-row");
             a.dataset.space = spc.id;
             a.href = hashFor({ tab: group_id, space: spc.id });
-            a.append(el("span", null, shortName(spc)), el("span", "network-count", `${n} species · ${obs.toLocaleString()} obs.`));
+            a.append(el("span", null, shortName(spc)), el("span", "network-count", `${n} species · ${obs.toLocaleString()} records`));
             const li = el("li");
             li.appendChild(a);
             if (low) {
-                const flag = el("a", "network-flag", obs === 0 ? `Be the first to record ${label} here →` : "More observations needed →");
+                const flag = el("a", "network-flag", obs === 0 ? `Be the first to record ${label} here →` : "More data needed →");
                 flag.href = helpHref(spc);
                 li.appendChild(flag);
             }
@@ -200,7 +188,13 @@ function comparisonView(a, b, group_id) {
         `${only_b.length} only at ${shortName(b)} (${similarity}% similar).`);
 
     const columns = el("div", "network-columns");
-    [`${shortName(a)} (${at_a.size})`, `${shortName(b)} (${at_b.size})`].forEach((text) => columns.appendChild(el("h4", null, text)));
+    // Column headings: the site's name, then its species count on a line of its own, so both
+    // columns line up whether or not a long name wraps
+    [[a, at_a], [b, at_b]].forEach(([spc, ids]) => {
+        const h = el("h4", null, shortName(spc));
+        h.appendChild(el("span", "network-column-count", `${ids.size} species`));
+        columns.appendChild(h);
+    });
     const gap = (where) => {
         const g = el("div", "network-gap");
         g.setAttribute("role", "img");
@@ -215,15 +209,15 @@ function comparisonView(a, b, group_id) {
         if (ids.length === 0) return;
         columns.appendChild(el("div", "network-section", `${heading} (${ids.length})`));
         sortedSpecies(ids).forEach((id) => {
-            columns.appendChild(left ? networkSpeciesItem(id, "div") : gap(shortName(a)));
-            columns.appendChild(right ? networkSpeciesItem(id, "div") : gap(shortName(b)));
+            const via = (spc) => (ebirdOnly(spc.id, group_id, id) ? "eBird only" : "");
+            columns.appendChild(left ? networkSpeciesItem(id, "div", via(a), a, group_id) : gap(shortName(a)));
+            columns.appendChild(right ? networkSpeciesItem(id, "div", via(b), b, group_id) : gap(shortName(b)));
         });
     });
     const parts = [backButton("← All spaces", () => go({ tab: group_id })), title, lede];
     const fewest = [a, b].map((spc) => ({ spc, ...spaceEffort(NETWORK_DATA, spc.id, group_id) })).sort((x, y) => x.obs - y.obs)[0];
     if (fewest.low) {
-        const note = el("a", "network-flag comparison-caveat",
-            `Based on few observations (${fewest.obs.toLocaleString()} at ${shortName(fewest.spc)}), so this may change a lot · help add some →`);
+        const note = el("a", "network-flag comparison-caveat", "More data needed →");
         note.href = helpHref(fewest.spc);
         parts.push(note);
     }
@@ -279,7 +273,8 @@ panel.addEventListener("pointerleave", () => panelHover({ target: panel }));
 panel.addEventListener("focusout", (e) => { if (!panel.contains(e.relatedTarget)) panelHover({ target: panel }); });
 
 function render() {
-    document.querySelectorAll("#panel-tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === state.tab)));
+    document.querySelectorAll('#panel-tabs [role="tab"]').forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === state.tab)));
+    document.querySelectorAll("#panel-tabs .site-options button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.space === state.space)));
     if (network) {
         map_el.classList.toggle("network-mode", state.tab !== "signature");
         if (state.tab === "signature") network.hide();
@@ -331,8 +326,9 @@ function useListLayout() {
     document.getElementById("landing").classList.remove("landing");
 }
 
-// The panel header: a "Corridors" toggle with one option per species group, then the
-// Signature Species view. All of them are tabs of one tab list, in this visual order.
+// The panel header: a "Corridors" toggle with one tab per species group, and a "Sites" row
+// with one button per space. Hovering a site highlights it on the map; clicking selects it
+// and shows its summary (signature species and connections).
 function buildTabs() {
     const tabs = document.getElementById("panel-tabs");
     const makeTab = (t) => {
@@ -357,13 +353,30 @@ function buildTabs() {
         corridors.append(label, options);
         tabs.appendChild(corridors);
     }
-    const signature = makeTab(TABS[0]);
-    signature.classList.add("tab-pill");
-    tabs.appendChild(signature);
-    // Left/right arrows move between tabs, as screen-reader users expect of a tab list
+    const sites = el("div", "corridor-toggle site-toggle");
+    const sites_label = el("span", "corridor-toggle-label", "Sites");
+    sites_label.id = "sites-label";
+    const site_options = el("div", "segmented site-options");
+    site_options.setAttribute("role", "group");
+    site_options.setAttribute("aria-labelledby", "sites-label");
+    located.forEach((spc) => {
+        const b = el("button", null, shortName(spc));
+        b.type = "button";
+        b.dataset.space = spc.id; // also highlights the site on the map while hovered (panelHover)
+        b.setAttribute("aria-pressed", "false");
+        b.addEventListener("click", () => go({ tab: "signature", space: spc.id }));
+        site_options.appendChild(b);
+    });
+    sites.append(sites_label, site_options);
+    tabs.appendChild(sites);
+    tabs.addEventListener("pointerover", panelHover);
+    tabs.addEventListener("focusin", panelHover);
+    tabs.addEventListener("pointerleave", () => panelHover({ target: tabs }));
+    tabs.addEventListener("focusout", (e) => { if (!tabs.contains(e.relatedTarget)) panelHover({ target: tabs }); });
+    // Left/right arrows move between the corridor tabs, as screen-reader users expect of a tab list
     tabs.addEventListener("keydown", (e) => {
         if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-        const buttons = [...tabs.querySelectorAll("button")];
+        const buttons = [...tabs.querySelectorAll('[role="tab"]')];
         const i = buttons.indexOf(document.activeElement);
         if (i < 0) return;
         const next = buttons[(i + (e.key === "ArrowRight" ? 1 : buttons.length - 1)) % buttons.length];

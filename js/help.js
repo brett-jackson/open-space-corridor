@@ -41,13 +41,13 @@
     ].filter((t) => t.count > 0);
 
     // Groups with few observations here: an invitation to go and look
-    const SINGULAR = { bees: "bee", lepidoptera: "butterfly & moth", birds: "bird" }; // "3 bee observations"
+    const SINGULAR = { bees: "bee", lepidoptera: "butterfly & moth", birds: "bird" }; // "3 bee records"
     NETWORK_DATA.groups.forEach((g) => {
         const { obs, low } = spaceEffort(NETWORK_DATA, SPACE.id, g.id);
         if (!low) return;
         tasks.push({
             count: obs,
-            unit: `${SINGULAR[g.id] || g.label.toLowerCase()} observations so far`,
+            unit: `${SINGULAR[g.id] || g.label.toLowerCase()} ${obs === 1 ? "record" : "records"} so far`,
             title: obs === 0 ? `Be the first to record ${g.label.toLowerCase()} at ${name}` : `Look for ${g.label.toLowerCase()} at ${name}`,
             text: `Fill in the corridor map by observing ${name}'s ${g.label.toLowerCase()}.`,
             how: "Upload your photos to iNaturalist.",

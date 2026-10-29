@@ -144,7 +144,7 @@ function createNetwork(map, spaces, data, handlers) {
                 weight = 1.5;
             } else if (thin) {
                 // Tentative: drawn dashed, but still as thick as its similarity so its strength shows
-                tip = `${a.title} ↔ ${b.title}: ${shared} shared ${label} · ${Math.round(similarity * 100)}% similar, from few observations`;
+                tip = `${a.title} ↔ ${b.title}: ${shared} shared ${label} · ${Math.round(similarity * 100)}% similar, from few records`;
                 weight = shared === 0 ? 1.5 : LINK_MIN_WEIGHT + similarity * (LINK_MAX_WEIGHT - LINK_MIN_WEIGHT);
             } else if (shared === 0) {
                 tip = `${a.title} ↔ ${b.title}: no shared ${label} recorded yet`;

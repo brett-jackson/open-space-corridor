@@ -29,7 +29,7 @@
         <div class="help-cards" id="help-cards"></div>
       </section>
       <section class="page-section" id="top-observers">
-        <h2>Top Observers</h2>
+        <h2>Top Observers<img class="source-logo" src="images/logos/inaturalist.png" alt="iNaturalist data" title="Compiled from iNaturalist"></h2>
         <div class="segmented" id="observer-metric" role="group" aria-label="Rank observers by">
           <button type="button" data-metric="observations" aria-pressed="true">Observations</button>
           <button type="button" data-metric="species" aria-pressed="false">Species</button>
@@ -37,7 +37,7 @@
         <ol class="observers" id="observers"></ol>
       </section>
       <section class="page-section" id="recent-observations">
-        <h2>Recent Observations</h2>
+        <h2>Recent Observations<img class="source-logo" src="images/logos/inaturalist.png" alt="iNaturalist data" title="Compiled from iNaturalist"></h2>
         <div class="carousel" id="carousel">
           <button class="arrow" id="prev" aria-label="Newer observations" disabled>&#8249;</button>
           <div class="mosaic" id="grid" role="region" aria-label="Activity"></div>
@@ -45,7 +45,7 @@
         </div>
       </section>
       <section class="page-section" id="trends">
-        <h2>Trends</h2>
+        <h2>Trends<img class="source-logo" src="images/logos/inaturalist.png" alt="iNaturalist data" title="Compiled from iNaturalist"></h2>
         <div class="segmented" id="trend-metric" role="group" aria-label="Show trend of">
           <button type="button" data-metric="observations" aria-pressed="true">Observations</button>
           <button type="button" data-metric="species" aria-pressed="false">Species</button>
@@ -69,6 +69,10 @@
       <section class="page-section" id="corridor-connections">
         <h2>Corridor Connections</h2>
         <div id="connections-body"></div>
+      </section>
+      <section class="page-section" id="data">
+        <h2>Data</h2>
+        <div id="data-body"></div>
       </section>
     </main>
   </div>
@@ -115,6 +119,7 @@
         "js/space_corridor.js",
         "js/help_tasks.js",
         "js/help.js",
+        "js/data_export.js",
         "js/sections.js",
       ].forEach((src) => {
         const script = document.createElement("script");

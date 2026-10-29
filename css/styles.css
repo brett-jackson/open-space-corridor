@@ -204,6 +204,20 @@ h1 { margin: 0 0 8px; font-family: var(--font-display); font-weight: 600; font-s
 }
 .featured-species a:hover { background: rgba(255, 255, 255, 0.05); }
 .featured-species a:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 1px; }
+/* Sources: the iNaturalist logo beside iNaturalist-only sections, the eBird badge on eBird-only species */
+.source-logo { width: 28px; height: 28px; margin-left: 6px; vertical-align: -5px; } /* the bird fills ~60% of the image */
+.featured-photo { position: relative; flex: none; display: block; }
+.featured-species .ebird-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--bg-box);
+    border-radius: 50%;
+    background: #fff;
+    object-fit: contain;
+}
 .featured-species img, .featured-species .placeholder {
     flex: none;
     width: 52px;
@@ -231,8 +245,28 @@ h1 { margin: 0 0 8px; font-family: var(--font-display); font-weight: 600; font-s
 /* "Corridors": the species groups as one segmented toggle */
 .corridor-toggle { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; max-width: 100%; } /* on phones the label wraps above */
 .corridor-toggle-label { color: var(--text-muted); font-size: 0.72rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; }
-.corridor-toggle .segmented { margin: 0; flex-wrap: nowrap; }
-.corridor-toggle .segmented button { padding: 5px 11px; letter-spacing: 0.05em; white-space: nowrap; }
+/* Header options are separate chips (each with its own faint fill and hairline border), so
+   neighbors read as distinct buttons even before hovering, on one line or wrapped */
+.corridor-toggle .segmented { margin: 0; padding: 0; border: none; gap: 6px; flex-wrap: nowrap; }
+.corridor-toggle .segmented button {
+    padding: 4px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.04);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+.corridor-toggle .segmented button:hover:not([aria-selected="true"]):not([aria-pressed="true"]) { border-color: rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.08); color: var(--text); }
+.corridor-toggle .segmented button[aria-selected="true"], .corridor-toggle .segmented button[aria-pressed="true"] { border-color: var(--text); }
+/* Both rows' labels share a width, so their options start in the same column */
+.corridor-toggle-label { min-width: 78px; }
+/* Sites: one option per space; seven don't fit one line, so the group wraps */
+.site-toggle { align-items: flex-start; }
+.site-toggle .corridor-toggle-label { padding-top: 5px; }
+.corridor-toggle .site-options { flex-wrap: wrap; flex: 1 1 240px; min-width: 0; } /* drops under its label on phones, like Corridors */
+.site-options button[aria-pressed="true"] { background: var(--text); color: var(--bg); }
+.site-options button:focus-visible { color: var(--text); }
+/* Selected options keep dark text while hovered (the hover color rules come later in this file) */
+.panel-tabs button[aria-selected="true"]:hover, .panel-tabs button[aria-pressed="true"]:hover { color: var(--bg); }
 .panel-content { flex: 1; min-height: 0; overflow-y: auto; padding: 20px 18px; }
 .panel-content > :first-child { margin-top: 0; } /* the content's padding sets the gap below the tabs */
 .panel-tabs .tab-pill {
@@ -285,9 +319,12 @@ a.connection:focus-visible { outline: 3px solid var(--hover-outline); outline-of
 .connection.is-gap { border-style: dashed; color: var(--text-muted); }
 .connection-name { flex: 1 1 auto; min-width: 0; font-weight: 600; }
 .connection-detail { flex: 0 1 auto; color: var(--text-muted); font-size: 0.8rem; text-align: right; }
-.connection-bar.is-thin { background: repeating-linear-gradient(to right, var(--net-color) 0 6px, transparent 6px 10px) 0 0 / var(--pct) 100% no-repeat, var(--outline); }
 .connection-bar { flex-basis: 100%; height: 4px; margin-top: 4px; border-radius: 2px; background: linear-gradient(to right, var(--net-color) var(--pct), var(--outline) var(--pct)); }
 .connection-group { border-left: 3px solid var(--net-color); }
+/* Neighbor rows: name left, a short detail right that never wraps, a bar underneath */
+.connections .connection { flex-wrap: wrap; }
+.connections .connection-detail { white-space: nowrap; }
+.connection-bar.is-muted-bar { background: linear-gradient(to right, var(--text-muted) var(--pct), var(--outline) var(--pct)); opacity: 0.6; }
 .effort-line { margin: 0 0 12px; color: var(--text-muted); font-size: 0.85rem; }
 .effort-line .network-flag { margin: 2px 0 0; }
 .network-count-row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 12px; padding: 6px 0; color: inherit; text-decoration: none; }
@@ -342,8 +379,6 @@ a.connection:focus-visible { outline: 3px solid var(--hover-outline); outline-of
 }
 .help-action:hover { border-color: var(--hover-outline); color: var(--hover-outline); }
 .help-action:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 2px; }
-.panel-help-link { display: block; margin: 10px 0 0; color: #f0c674; font-size: 0.85rem; text-decoration: none; }
-.panel-help-link:hover { text-decoration: underline; }
 
 /* Network overview and link comparison */
 .network-counts { list-style: none; margin: 0; padding: 0; font-size: 0.9rem; }
@@ -363,11 +398,14 @@ a.connection:focus-visible { outline: 3px solid var(--hover-outline); outline-of
 .panel-back:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 2px; border-radius: 4px; }
 .panel-title-small { font-size: 1.45rem; margin-bottom: 6px; }
 .network-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; row-gap: 2px; align-items: center; }
-.network-columns h4 { margin: 0 0 6px; color: var(--text-muted); font-size: 0.72rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; align-self: end; }
+.network-columns h4 { margin: 0 0 6px; color: var(--text-muted); font-size: 0.72rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; align-self: start; }
+.network-column-count { display: block; margin-top: 2px; text-transform: none; letter-spacing: 0; font-size: 0.75rem; }
 .network-gap { align-self: stretch; margin: 3px 0; border-radius: 6px; border: 1px dashed var(--outline); }
 .network-species a { display: flex; align-items: center; gap: 8px; padding: 3px; border-radius: 6px; color: inherit; text-decoration: none; font-size: 0.82rem; line-height: 1.25; }
 .network-species a:hover { background: rgba(255, 255, 255, 0.05); }
 .network-species a:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 1px; }
+.network-species-text { display: flex; flex-direction: column; min-width: 0; }
+.network-species-note { color: var(--text-muted); font-size: 0.7rem; }
 .network-species img, .network-species .placeholder { flex: none; width: 28px; height: 28px; border-radius: 4px; object-fit: cover; background: var(--outline); }
 
 /* Network overlays on the map: one hue per group, outlined so they read over satellite imagery */
@@ -739,6 +777,11 @@ html { scroll-behavior: smooth; }
 .trend-data th, .trend-data td { padding: 4px 16px 4px 0; text-align: left; border-bottom: 1px solid var(--outline); }
 .trend-data th { color: var(--text-muted); font-weight: 500; }
 .trend-data td:last-child, .trend-data th:last-child { text-align: right; }
+
+/* Data: observation export */
+#data-body { max-width: 560px; }
+.data-export { border: none; font-family: inherit; cursor: pointer; }
+.data-status:empty { display: none; }
 
 /* Narrow screens: the sidebar becomes a sticky bar of links across the top */
 @media (max-width: 900px) {

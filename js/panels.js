@@ -16,6 +16,17 @@ function spaceHref(spc) {
     return "space.html?id=" + encodeURIComponent(spc.id);
 }
 
+// The space's area as an inaturalist.org query string: its place, or its bounding box (the
+// site can't apply `exclude` boxes, so links for those spaces include the excluded corner)
+function spaceAreaQuery(spc) {
+    if (!spc.bbox) return "place_id=" + encodeURIComponent(spc.place_id);
+    const [[lat1, lng1], [lat2, lng2]] = spc.bbox;
+    return new URLSearchParams({
+        nelat: Math.max(lat1, lat2), nelng: Math.max(lng1, lng2),
+        swlat: Math.min(lat1, lat2), swlng: Math.min(lng1, lng2),
+    }).toString();
+}
+
 function groupLabel(group_id) {
     return NETWORK_DATA.groups.find((g) => g.id === group_id)?.label || group_id;
 }
@@ -48,11 +59,24 @@ function signatureSection(spc, heading_tag = "h3") {
     parts.push(el("p", "panel-lede", "Species seen here more than at other spaces."));
     const ol = el("ol", "featured-species");
     list.forEach((sp) => {
+        // Its iNaturalist observations at this site; an eBird-only bird has none, so its species page
         const a = el("a");
-        a.href = "https://www.inaturalist.org/taxa/" + sp.taxon_id;
+        a.href = sp.ebird_only
+            ? "https://www.inaturalist.org/taxa/" + sp.taxon_id
+            : `https://www.inaturalist.org/observations?${spaceAreaQuery(spc)}&taxon_id=${sp.taxon_id}&verifiable=true`;
         a.target = "_blank";
         a.rel = "noopener";
-        a.appendChild(speciesPhoto(sp.photo, sp.attribution));
+        // A bird seen here only on eBird gets the eBird logo on its photo
+        const photo = el("span", "featured-photo");
+        photo.appendChild(speciesPhoto(sp.photo, sp.attribution));
+        if (sp.ebird_only) {
+            const badge = el("img", "ebird-badge");
+            badge.src = "images/logos/ebird.png";
+            badge.alt = "Observed only on eBird";
+            badge.title = "Observed only on eBird";
+            photo.appendChild(badge);
+        }
+        a.appendChild(photo);
         const text = el("span", "featured-text");
         const display = taxonDisplayName({ preferred_common_name: sp.common_name, name: sp.name });
         const common = el("span", "featured-common", display.text);
@@ -60,7 +84,17 @@ function signatureSection(spc, heading_tag = "h3") {
         text.appendChild(common);
         if (sp.common_name) text.appendChild(el("span", "featured-sci", sp.name));
         const where = sp.spaces === 1 ? "only here" : `in ${sp.spaces} of ${FEATURED.spaces_compared} spaces`;
-        text.appendChild(el("span", "featured-meta", `${sp.count.toLocaleString()} ${sp.count === 1 ? "observation" : "observations"} · ${where}`));
+        // Counts: iNaturalist observations, eBird records, or (for birds on both) records of either
+        const n = sp.count.toLocaleString();
+        const counted = sp.ebird_only ? `${n} eBird ${sp.count === 1 ? "record" : "records"}`
+            : sp.ebird_count ? `${n} records`
+            : `${n} ${sp.count === 1 ? "observation" : "observations"}`;
+        const meta = el("span", "featured-meta", `${counted} · ${where}`);
+        if (sp.ebird_count && !sp.ebird_only) {
+            const inat = sp.count - sp.ebird_count;
+            meta.title = `${inat.toLocaleString()} iNaturalist ${inat === 1 ? "observation" : "observations"} and ${sp.ebird_count.toLocaleString()} eBird ${sp.ebird_count === 1 ? "record" : "records"}`;
+        }
+        text.appendChild(meta);
         a.appendChild(text);
         const li = el("li");
         li.appendChild(a);
@@ -71,18 +105,33 @@ function signatureSection(spc, heading_tag = "h3") {
 }
 
 // One species (from js/species_network.js) as a small photo + name link
-function networkSpeciesItem(id, tag = "li") {
+// Species recorded at the space only on eBird, not iNaturalist
+function ebirdOnly(space_id, group_id, id) {
+    return (NETWORK_DATA.ebird_only?.[space_id]?.[group_id] || []).includes(Number(id));
+}
+
+// With a space, the link opens the species' iNaturalist observations there (unless only
+// eBird has recorded it there, which leaves the species page)
+function networkSpeciesItem(id, tag = "li", note = "", spc = null, group_id = null) {
     const sp = NETWORK_DATA.species[id] || { name: "Taxon " + id, common_name: "", photo: "" };
     const item = el(tag, "network-species");
     const a = el("a");
-    a.href = "https://www.inaturalist.org/taxa/" + id;
+    a.href = spc && !ebirdOnly(spc.id, group_id, id)
+        ? `https://www.inaturalist.org/observations?${spaceAreaQuery(spc)}&taxon_id=${id}&verifiable=true`
+        : "https://www.inaturalist.org/taxa/" + id;
     a.target = "_blank";
     a.rel = "noopener";
     a.appendChild(speciesPhoto(sp.photo));
     const display = taxonDisplayName({ preferred_common_name: sp.common_name, name: sp.name });
     const name = el("span", null, display.text);
     if (display.scientific) name.classList.add("scientific");
-    a.appendChild(name);
+    if (note) {
+        const wrap = el("span", "network-species-text");
+        wrap.append(name, el("span", "network-species-note", note));
+        a.appendChild(wrap);
+    } else {
+        a.appendChild(name);
+    }
     item.appendChild(a);
     return item;
 }
@@ -119,7 +168,6 @@ function helpHref(spc) {
 // each row's link, so pages decide where a row goes. Rows without enough data link to the
 // thinner space's How to Help cards instead.
 function connectionsList(spc, spaces, group_id, hrefFor) {
-    const label = groupLabel(group_id).toLowerCase();
     const ul = el("ul", "connections net-" + group_id);
     connectionsOf(spc, spaces, group_id).forEach(({ other, link }) => {
         // Every comparable pair opens its comparison; with nothing on either side, help instead
@@ -127,20 +175,18 @@ function connectionsList(spc, spaces, group_id, hrefFor) {
         row.href = link.selectable ? hrefFor(other) : helpHref(thinnerSpace(link, group_id));
         row.dataset.space = other.id; // hovering the row highlights that space on the landing map
         row.appendChild(el("span", "connection-name", shortName(other)));
-        const fewest = thinnerSpace(link, group_id);
-        const few = `few records (${spaceEffort(NETWORK_DATA, fewest.id, group_id).obs.toLocaleString()} obs. at ${shortName(fewest)})`;
-        if (link.similarity === null) {
-            row.appendChild(el("span", "connection-detail", link.selectable ? `Nothing to compare yet · ${few}` : "No observations at either space yet · help add some →"));
-        } else if (link.shared === 0) {
-            row.appendChild(el("span", "connection-detail", `No shared ${label} recorded yet` + (link.thin ? ` · ${few}` : "")));
-        } else {
-            const pct = Math.round(link.similarity * 100);
-            row.appendChild(el("span", "connection-detail", `${link.shared} shared · ${pct}% similar` + (link.thin ? ` · ${few}` : "")));
-            const bar = el("span", "connection-bar" + (link.thin ? " is-thin" : ""));
-            bar.style.setProperty("--pct", pct + "%");
-            bar.setAttribute("aria-hidden", "true");
-            row.appendChild(bar);
-        }
+        // Short details (the view already names the group); every row keeps a bar, gray when the
+        // pair needs more records before its similarity means much
+        const pct = link.similarity === null ? 0 : Math.round(link.similarity * 100);
+        let detail;
+        if (link.similarity === null) detail = "No records yet";
+        else if (link.shared === 0) detail = "None shared yet";
+        else detail = `${link.shared} shared · ${pct}%`; // a gray bar marks too few records
+        row.appendChild(el("span", "connection-detail", detail));
+        const bar = el("span", "connection-bar" + (link.gap ? " is-muted-bar" : ""));
+        bar.style.setProperty("--pct", pct + "%");
+        bar.setAttribute("aria-hidden", "true");
+        row.appendChild(bar);
         const li = el("li");
         li.appendChild(row);
         ul.appendChild(li);
@@ -152,9 +198,9 @@ function connectionsList(spc, spaces, group_id, hrefFor) {
 function effortLine(spc, group_id) {
     const n = (NETWORK_DATA.by_space[spc.id]?.[group_id] || []).length;
     const { obs, low } = spaceEffort(NETWORK_DATA, spc.id, group_id);
-    const p = el("p", "effort-line", `${n} native species · ${obs.toLocaleString()} observations`);
+    const p = el("p", "effort-line", `${n} native species · ${obs.toLocaleString()} ${obs === 1 ? "record" : "records"}`);
     if (low) {
-        const flag = el("a", "network-flag", "More observations needed →");
+        const flag = el("a", "network-flag", "More data needed →");
         flag.href = helpHref(spc);
         p.appendChild(flag);
     }

@@ -2,7 +2,8 @@ name: Update iNaturalist data
 
 # Refreshes the static data files the site serves and commits them when anything changed.
 #   Hourly: trends (new observations only), signature species, species network (~40 requests)
-#   Daily:  also re-checks last year's trends and counts the How to Help tasks (~40 more)
+#   Daily:  also re-checks last year's trends, counts the How to Help tasks (~40 more) and
+#           refreshes the GBIF records (eBird and more; scripts/update_gbif.py, a few hundred GBIF requests)
 #   Manual (Run workflow): everything, including space boundaries, which rarely change
 # Requests are spaced 1 second apart and repeated ones are shared through a short-lived
 # cache (scripts/areas.py), well within iNaturalist's API guidelines.
@@ -50,6 +51,11 @@ jobs:
         continue-on-error: true
         run: python3 scripts/update_featured_species.py
 
+      - name: Update GBIF records
+        if: env.HOURLY != 'true'
+        continue-on-error: true
+        run: python3 scripts/update_gbif.py  # before the species network, which adds its bird records
+
       - name: Update species network
         continue-on-error: true
         run: python3 scripts/update_species_network.py
@@ -63,6 +69,7 @@ jobs:
         if: always()
         run: |
           git add js/boundaries.js js/featured_species.js js/species_network.js js/help_tasks.js spaces/*/trends_cache.js
+          if [ -f js/gbif_records.js ]; then git add js/gbif_records.js; fi
           if git diff --cached --quiet; then
             echo "No data changes."
             exit 0
