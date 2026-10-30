@@ -147,7 +147,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 25,
     "spaces": 5,
-    "score": 0.076422
+    "score": 0.076425
    },
    {
     "taxon_id": 9346,
@@ -160,7 +160,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 1,
-    "score": 0.034805
+    "score": 0.034806
    },
    {
     "taxon_id": 58896,
@@ -225,7 +225,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 7,
     "spaces": 5,
-    "score": 0.022321
+    "score": 0.022298
    },
    {
     "taxon_id": 20044,
@@ -618,12 +618,12 @@ window.FEATURED_SPECIES = {
     "common_name": "Western Meadowlark",
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/28781133/square.jpeg",
     "attribution": "(c) Nature Ali, some rights reserved (CC BY-NC-ND), uploaded by Nature Ali",
-    "count": 31,
-    "ebird_count": 29,
+    "count": 32,
+    "ebird_count": 30,
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 5,
-    "score": 0.015058
+    "score": 0.015589
    }
   ],
   "mckay-lake": [
