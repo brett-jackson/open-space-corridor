@@ -710,7 +710,7 @@ window.FEATURED_SPECIES = {
     "name": "Amorpha fruticosa",
     "common_name": "false indigo bush",
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/3976234/square.jpg",
-    "attribution": "(c) Susan Elliott, baz\u0131 haklar\u0131 sakl\u0131d\u0131r (CC BY-NC), y\u00fckleyen: Susan Elliott",
+    "attribution": "(c) Susan Elliott, some rights reserved (CC BY-NC), uploaded by Susan Elliott",
     "count": 2,
     "ebird_count": 0,
     "ebird_only": false,
