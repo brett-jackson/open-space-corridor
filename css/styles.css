@@ -773,7 +773,8 @@ html { scroll-behavior: smooth; }
 .trend-data { margin-top: 8px; font-size: 0.85rem; }
 .trend-data summary { color: var(--text-muted); cursor: pointer; }
 .trend-data summary:hover { color: var(--text); }
-.trend-data table { margin-top: 8px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.trend-table-wrap { max-height: 320px; overflow-y: auto; margin-top: 8px; }
+.trend-data table { margin-top: 0; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .trend-data th, .trend-data td { padding: 4px 16px 4px 0; text-align: left; border-bottom: 1px solid var(--outline); }
 .trend-data th { color: var(--text-muted); font-weight: 500; }
 .trend-data td:last-child, .trend-data th:last-child { text-align: right; }

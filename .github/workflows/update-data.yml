@@ -1,8 +1,8 @@
 name: Update iNaturalist data
 
 # Refreshes the static data files the site serves and commits them when anything changed.
-#   Hourly: trends (new observations only), signature species, species network (~40 requests)
-#   Daily:  also re-checks last year's trends, counts the How to Help tasks (~40 more) and
+#   Hourly: trends (when a month has completed), signature species, species network (~40 requests)
+#   Daily:  also recomputes every month of the trends, counts the How to Help tasks (~40 more) and
 #           refreshes the GBIF records (eBird and more; scripts/update_gbif.py, a few hundred GBIF requests)
 #   Manual (Run workflow): everything, including space boundaries, which rarely change
 # Requests are spaced 1 second apart and repeated ones are shared through a short-lived
@@ -42,9 +42,9 @@ jobs:
         continue-on-error: true
         run: |
           if [ "$HOURLY" = "true" ]; then
-            python3 scripts/update_trends_cache.py --refresh-years 0  # only years not yet cached
+            python3 scripts/update_trends_cache.py --if-missing  # only when a month has completed
           else
-            python3 scripts/update_trends_cache.py                    # also re-check the latest cached year
+            python3 scripts/update_trends_cache.py               # recompute every month (late uploads, new IDs)
           fi
 
       - name: Update featured species
