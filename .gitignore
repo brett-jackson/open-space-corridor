@@ -3,3 +3,6 @@
 .DS_Store
 .cache/
 scripts/__pycache__
+
+# Bioblitz analysis output (contains iNaturalist logins)
+analysis/out/
