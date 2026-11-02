@@ -5,6 +5,7 @@
     --text-muted: #9aa8b5;
     --outline: #2a3541;
     --hover-outline: #7db0ff;
+    --event: #f2b84b; /* bioblitz markers on the Trends chart */
     --radius: 10px;
     --content-top: 56px;
     --back-h: 36px; /* back link height + its gap, tucked into the sidebar's top padding */
@@ -770,6 +771,11 @@ html { scroll-behavior: smooth; }
 .trend-tooltip strong { display: block; font-size: 0.95rem; }
 .trend-tooltip span { color: var(--text-muted); }
 .trend-note { margin: 10px 0 0; color: var(--text-muted); font-size: 0.8rem; }
+.trend-event-rule { stroke: var(--event); stroke-width: 1; stroke-dasharray: 2 3; opacity: 0.6; }
+.trend-event { fill: var(--event); stroke: var(--bg); stroke-width: 2; }
+.trend-tooltip .trend-tooltip-event { display: block; color: var(--event); }
+.trend-key { margin-left: 12px; white-space: nowrap; }
+.trend-key::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: var(--event); }
 .trend-data { margin-top: 8px; font-size: 0.85rem; }
 .trend-data summary { color: var(--text-muted); cursor: pointer; }
 .trend-data summary:hover { color: var(--text); }

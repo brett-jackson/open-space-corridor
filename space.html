@@ -55,7 +55,7 @@
           <figure class="trend-chart" id="trend-chart">
             <div class="trend-tooltip" id="trend-tooltip" hidden></div>
           </figure>
-          <p class="trend-note"><span id="trend-status" aria-live="polite"></span> Running totals at the end of each month, verifiable observations only.</p>
+          <p class="trend-note"><span id="trend-status" aria-live="polite"></span> Running totals at the end of each month, verifiable observations only.<span class="trend-key" id="trend-key" hidden>Bioblitz</span></p>
           <details class="trend-data">
             <summary>Show data table</summary>
             <div class="trend-table-wrap"><table id="trend-table"></table></div>
@@ -109,6 +109,7 @@
         "js/names.js",
         "js/site_viz.js",
         "spaces/" + SPACE.id + "/trends_cache.js", // optional; a missing cache just means more live requests
+        "js/bioblitzes.js",
         "js/trends.js",
         "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js",
         "js/boundaries.js",

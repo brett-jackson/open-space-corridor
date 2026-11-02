@@ -3,7 +3,9 @@
 
 Each value is the running total as of the last day of that month ("YYYY-MM"): all
 observations, and the number of distinct species and observers seen so far. Only completed
-months are cached; the site adds today's totals live.
+months are cached; the site adds today's totals live. Around each of the space's bioblitzes
+(js/bioblitzes.js), "days" also holds the totals at the end of the day before and of the
+event day ("YYYY-MM-DD"), so the chart shows its jump on the right day.
 
 Every month is computed from one download of the space's observations (200 per request, so
 a few requests per space), which is far cheaper than a distinct-count query per month and
@@ -30,6 +32,8 @@ from areas import ROOT, all_observations, area_key, area_params, exclusions, rea
 
 USER_AGENT = "open-space-corridor trends cache (iNaturalist user: brettjackson)"
 SPACES_DIR = ROOT / "spaces"
+BIOBLITZES_JS = ROOT / "js" / "bioblitzes.js"
+METRICS = ("observations", "species", "observers")
 
 
 def write_cache(path, cache):
@@ -55,17 +59,25 @@ def months_between(first, last):
     return out
 
 
-def monthly_totals(observations, last_month, leaf_species):
-    """Month-end running totals of observations, species and observers, through last_month."""
+def event_days(space_id, today):
+    """The day before and the day of each of the space's bioblitzes, if that day has ended."""
+    events = (read_js_object(BIOBLITZES_JS) or {}).get(space_id, [])
+    days = set()
+    for e in events:
+        day = datetime.date.fromisoformat(e)
+        days.update(d.isoformat() for d in (day - datetime.timedelta(days=1), day) if d < today)
+    return sorted(days)
+
+
+def running_totals(observations, cutoffs, leaf_species):
+    """Running totals of observations, species and observers at the end of each cutoff date
+    (sorted "YYYY-MM-DD" strings), as {metric: [value per cutoff]}."""
     dated = sorted((o for o in observations if o.get("observed_on")), key=lambda o: o["observed_on"])
-    dated = [o for o in dated if o["observed_on"][:7] <= last_month]
-    totals = {"observations": {}, "species": {}, "observers": {}}
-    if not dated:
-        return totals
+    totals = {m: [] for m in METRICS}
     taxa, ancestors, users = set(), set(), set()
     species, i = 0, 0
-    for month in months_between(dated[0]["observed_on"][:7], last_month):
-        while i < len(dated) and dated[i]["observed_on"][:7] <= month:
+    for cutoff in cutoffs:
+        while i < len(dated) and dated[i]["observed_on"] <= cutoff:
             taxon = dated[i].get("taxon") or {}
             if leaf_species and taxon.get("id") and taxon["id"] not in taxa:
                 # A leaf is an observed taxon that no other observed taxon descends from
@@ -81,10 +93,15 @@ def monthly_totals(observations, last_month, leaf_species):
             if (dated[i].get("user") or {}).get("login"):
                 users.add(dated[i]["user"]["login"])
             i += 1
-        totals["observations"][month] = i
-        totals["species"][month] = species
-        totals["observers"][month] = len(users)
+        totals["observations"].append(i)
+        totals["species"].append(species)
+        totals["observers"].append(len(users))
     return totals
+
+
+def month_end(month):
+    y, m = int(month[:4]), int(month[5:7])
+    return (datetime.date(y + m // 12, m % 12 + 1, 1) - datetime.timedelta(days=1)).isoformat()
 
 
 def update_space(space, if_missing, bbox=None):
@@ -95,21 +112,31 @@ def update_space(space, if_missing, bbox=None):
     last_month = (today.replace(day=1) - datetime.timedelta(days=1)).strftime("%Y-%m")
 
     old = read_js_object(cache_path)
+    days = event_days(space["id"], today)
     if if_missing and not bbox and old and old.get("interval") == "month" and old.get("area_key") == area_key(space) \
-            and not old.get("bbox") and last_month in old.get("observations", {}):
+            and not old.get("bbox") and last_month in old.get("observations", {}) \
+            and sorted(old.get("days", {}).get("observations", {})) == days:
         print("  up to date")
         return
 
     area = bbox or area_params(space)
-    totals = monthly_totals(all_observations(space, USER_AGENT, area), last_month, leaf_species=not exclusions(space))
-    if not totals["observations"]:
+    observations = all_observations(space, USER_AGENT, area)
+    first = min((o["observed_on"][:7] for o in observations if o.get("observed_on")), default=None)
+    if not first or first > last_month:
         print("  no completed months with observations; skipping (any existing cache is left as is)")
         return
+    months = months_between(first, last_month)
+    month_cutoffs = [month_end(m) for m in months]
+    cutoffs = sorted(set(month_cutoffs) | set(days))
+    totals = running_totals(observations, cutoffs, leaf_species=not exclusions(space))
+    at = {m: dict(zip(cutoffs, totals[m])) for m in METRICS}
     cache = {"place_id": space.get("place_id"), "area_key": area_key(space), "updated": today.isoformat(),
-             "cumulative": True, "interval": "month", **totals}
+             "cumulative": True, "interval": "month",
+             **{m: {month: at[m][end] for month, end in zip(months, month_cutoffs)} for m in METRICS}}
+    if days:
+        cache["days"] = {m: {d: at[m][d] for d in days} for m in METRICS}
     if bbox:
         cache["bbox"] = bbox  # the site counts this same box live
-    months = list(totals["observations"])
     if write_cache(cache_path, cache):
         print(f"  wrote {cache_path.relative_to(SPACES_DIR.parent)} ({months[0]} to {months[-1]})")
     else:

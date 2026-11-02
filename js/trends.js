@@ -1,7 +1,9 @@
 // Cumulative trends in the space's area: total observations, and distinct species and observers,
 // as of the end of each month. Completed months come from the space's trends_cache.js
 // (built by scripts/update_trends_cache.py); the current month's value is just today's
-// all-time total, so a fresh cache costs one request per metric. Spaces with exclusions,
+// all-time total, so a fresh cache costs one request per metric. The space's bioblitzes
+// (js/bioblitzes.js) are marked on the line, which also passes through the totals at the end
+// of the day before and of the event day, so each event's jump is drawn on its day. Spaces with exclusions,
 // and spaces without a cache, compute their months from the area's individual observations.
 const trend_params = {
     "verifiable" : true,
@@ -16,7 +18,8 @@ const CHART_HEIGHT = 280;
 const CHART_MARGIN = { top: 24, right: 56, bottom: 28, left: 44 };
 const SVG_NS = "http://www.w3.org/2000/svg";
 const today = new Date();
-const this_month = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0");
+const isoDate = (date) => date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0");
+const this_month = isoDate(today).slice(0, 7);
 
 const trend_chart = document.getElementById("trend-chart");
 const trend_tooltip = document.getElementById("trend-tooltip");
@@ -26,9 +29,10 @@ const trend_buttons = document.querySelectorAll("#trend-metric button");
 
 let trend_metric = "observations";
 let trend_months = [];         // every month ("YYYY-MM") from the first observation to now
-const trend_data = {};         // metric -> { month: cumulative count at month end }
+const trend_data = {};         // metric -> { month or day: cumulative count at its end }
 let trend_request_id = 0;
 let trend_focus = -1;          // index of the point under the crosshair
+const trend_events = ((typeof BIOBLITZES !== "undefined" && BIOBLITZES[SPACE.id]) || []).slice().sort();
 const compact = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 });
 
 // Seed from the static cache when it was built monthly for this same area
@@ -39,7 +43,19 @@ if (trend_cache && trend_cache.bbox) {
     delete trend_params["place_id"];
     Object.assign(trend_params, trend_cache.bbox);
 }
-Object.keys(trend_metrics).forEach((metric) => { trend_data[metric] = {...(trend_cache?.[metric] || {})}; });
+Object.keys(trend_metrics).forEach((metric) => {
+    trend_data[metric] = {...(trend_cache?.[metric] || {}), ...(trend_cache?.days?.[metric] || {})};
+});
+
+// The days with totals around each bioblitz: the day before and the event day, once they've ended
+function eventDays() {
+    const days = new Set();
+    trend_events.forEach((date) => {
+        const [y, m, d] = date.split("-").map(Number);
+        [isoDate(new Date(y, m - 1, d - 1)), date].forEach((day) => { if (day < isoDate(today)) days.add(day); });
+    });
+    return [...days].sort();
+}
 
 function svg(tag, attrs) {
     const el = document.createElementNS(SVG_NS, tag);
@@ -72,6 +88,28 @@ function monthLabel(month) {
     return month === this_month ? name + " (so far)" : "End of " + name;
 }
 
+// "YYYY-MM" is the end of that month (its index in trend_months); "YYYY-MM-DD" the end of that
+// day, between its month's point and the one before (this month runs up to today)
+function trendPos(key) {
+    const i = trend_months.indexOf(key.slice(0, 7));
+    if (i < 0) return null;
+    if (key.length === 7) return i;
+    const [y, m, d] = key.split("-").map(Number);
+    const days = key.startsWith(this_month) ? today.getDate() : new Date(y, m, 0).getDate();
+    return Math.max(0, i - 1 + Math.min(1, d / days));
+}
+
+function pointLabel(key) {
+    if (key.length === 7) return monthLabel(key);
+    const [y, m, d] = key.split("-").map(Number);
+    return "End of " + new Date(y, m - 1, d).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function eventLabel(date) {
+    const [y, m, d] = date.split("-").map(Number);
+    return "Bioblitz " + new Date(y, m - 1, d).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
 function countLabel(value) {
     const m = trend_metrics[trend_metric];
     return value.toLocaleString() + " " + (value === 1 ? m.singular : m.plural);
@@ -79,8 +117,12 @@ function countLabel(value) {
 
 function renderChart() {
     const data = trend_data[trend_metric];
-    // Points are the months with a value; a gap (a stale cache) is drawn as a straight segment
-    const points = trend_months.map((month, i) => ({ i: i, month: month, value: data[month] })).filter((p) => p.value !== undefined);
+    // Points are the months and bioblitz days with a value, in time order (a month first where a
+    // day is its last); a gap (a stale cache) is drawn as a straight segment
+    const points = Object.entries(data).map(([key, value]) => ({ key: key, pos: trendPos(key), value: value }))
+        .filter((p) => p.pos !== null)
+        .sort((a, b) => a.pos - b.pos || a.key.length - b.key.length)
+        .filter((p, k, all) => k === 0 || p.pos !== all[k - 1].pos);
     if (points.length === 0) return;
     const values = points.map((p) => p.value);
 
@@ -92,7 +134,7 @@ function renderChart() {
     const x_of = (i) => CHART_MARGIN.left + (span === 0 ? plot_w / 2 : (i / span) * plot_w);
     const y_of = (v) => CHART_MARGIN.top + plot_h - (v / scale.top) * plot_h;
     const base = y_of(0);
-    points.forEach((p) => { p.x = x_of(p.i); p.y = y_of(p.value); });
+    points.forEach((p) => { p.x = x_of(p.pos); p.y = y_of(p.value); p.events = []; });
     const last = points.length - 1;
 
     const root = svg("svg", { width: width, height: CHART_HEIGHT, viewBox: `0 0 ${width} ${CHART_HEIGHT}` });
@@ -122,12 +164,36 @@ function renderChart() {
 
     // Area wash and line; the current month's segment is dashed because it's still in progress
     const line_d = (pts) => pts.map((p, i) => (i ? "L" : "M") + p.x + "," + p.y).join("");
-    const complete = points[last].month === this_month ? points.slice(0, -1) : points;
+    const complete = points[last].key === this_month ? points.slice(0, -1) : points;
     root.appendChild(svg("path", { class: "trend-area", d: line_d(points) + `L${points[last].x},${base}L${points[0].x},${base}Z` }));
     if (complete.length > 1) root.appendChild(svg("path", { class: "trend-line", d: line_d(complete) }));
     if (complete.length < points.length && points.length > 1) {
         root.appendChild(svg("path", { class: "trend-line partial", d: line_d(points.slice(-2)) }));
     }
+
+    // Bioblitzes: a rule up to the line at the end of the event day, or, before that day's
+    // totals are in, at its place between the month-end points around it
+    trend_events.forEach((date) => {
+        const at = points.find((p) => p.key === date) || points.find((p) => p.key.length === 7 && p.pos === trendPos(date));
+        if (at) {
+            at.events.push(date);
+            root.appendChild(svg("line", { class: "trend-event-rule", x1: at.x, x2: at.x, y1: base, y2: at.y }));
+            root.appendChild(svg("circle", { class: "trend-event", cx: at.x, cy: at.y, r: 4 }));
+            return;
+        }
+        const i = trend_months.indexOf(date.slice(0, 7));
+        const cur = data[trend_months[i]];
+        if (i < 0 || cur === undefined) return;
+        const [y, m, d] = date.split("-").map(Number);
+        const days = trend_months[i] === this_month ? today.getDate() : new Date(y, m, 0).getDate();
+        const frac = Math.min(1, d / days);
+        const prev = i > 0 ? data[trend_months[i - 1]] : undefined;
+        const value = prev === undefined ? cur : prev + (cur - prev) * frac;
+        const x = x_of(i === 0 ? 0 : i - 1 + frac);
+        points.find((p) => p.key === trend_months[i])?.events.push(date);
+        root.appendChild(svg("line", { class: "trend-event-rule", x1: x, x2: x, y1: base, y2: y_of(value) }));
+        root.appendChild(svg("circle", { class: "trend-event", cx: x, cy: y_of(value), r: 4 }));
+    });
 
     // End dot and direct label on the latest value
     root.appendChild(svg("circle", { class: "trend-dot", cx: points[last].x, cy: points[last].y, r: 4 }));
@@ -135,7 +201,7 @@ function renderChart() {
     end_label.textContent = compact.format(values[last]);
     root.appendChild(end_label);
 
-    // Crosshair snaps to the nearest month; the whole plot is the hit target
+    // Crosshair snaps to the nearest point; the whole plot is the hit target
     const crosshair = svg("g", { class: "trend-crosshair", visibility: "hidden" });
     const cross_line = svg("line", { y1: CHART_MARGIN.top, y2: base });
     const cross_dot = svg("circle", { class: "trend-dot", r: 4 });
@@ -155,8 +221,14 @@ function renderChart() {
         const v = document.createElement("strong");
         v.textContent = countLabel(p.value);
         const label = document.createElement("span");
-        label.textContent = monthLabel(p.month);
+        label.textContent = pointLabel(p.key);
         trend_tooltip.append(v, label);
+        p.events.forEach((date) => {
+            const event = document.createElement("span");
+            event.className = "trend-tooltip-event";
+            event.textContent = eventLabel(date);
+            trend_tooltip.append(event);
+        });
         trend_tooltip.hidden = false;
         const max_left = width - trend_tooltip.offsetWidth;
         trend_tooltip.style.left = Math.max(0, Math.min(max_left, p.x - trend_tooltip.offsetWidth / 2)) + "px";
@@ -167,7 +239,7 @@ function renderChart() {
     };
 
     const hit = svg("rect", { class: "trend-hit", x: CHART_MARGIN.left - 12, y: 0, width: plot_w + 24, height: CHART_HEIGHT,
-        tabindex: "0", role: "img", "aria-label": `Cumulative ${trend_metrics[trend_metric].plural}: ${countLabel(values[last])} as of ${monthLabel(points[last].month)}. Use arrow keys to step through months.` });
+        tabindex: "0", role: "img", "aria-label": `Cumulative ${trend_metrics[trend_metric].plural}: ${countLabel(values[last])} as of ${pointLabel(points[last].key)}. ${trend_events.length ? ` ${trend_events.length} bioblitzes marked.` : ""} Use arrow keys to step through months.` });
     const nearest = (evt) => {
         const box = root.getBoundingClientRect();
         const px = evt.clientX - box.left;
@@ -188,20 +260,21 @@ function renderChart() {
 
     trend_chart.querySelector("svg")?.remove();
     trend_chart.prepend(root);
-    renderTable(points);
+    renderTable(points.filter((p) => p.key.length === 7));
 }
 
 function renderTable(points) {
     const m = trend_metrics[trend_metric];
     const head = document.createElement("tr");
-    ["Month", "Total " + m.plural].forEach((t) => {
+    ["Month", "Total " + m.plural, ...(trend_events.length ? ["Bioblitz"] : [])].forEach((t) => {
         const th = document.createElement("th");
         th.textContent = t;
         head.appendChild(th);
     });
     const rows = points.map((p) => {
         const tr = document.createElement("tr");
-        [monthLabel(p.month), p.value.toLocaleString()].forEach((t) => {
+        const events = trend_events.filter((date) => date.startsWith(p.key)).map((date) => eventLabel(date).replace("Bioblitz ", ""));
+        [monthLabel(p.key), p.value.toLocaleString(), ...(trend_events.length ? [events.join(", ")] : [])].forEach((t) => {
             const td = document.createElement("td");
             td.textContent = t;
             tr.appendChild(td);
@@ -211,8 +284,8 @@ function renderTable(points) {
     trend_table.replaceChildren(head, ...rows);
 }
 
-// Month-end totals from the area's individual observations, for every month the cache
-// doesn't already have (with excluded boxes that's just this month; without a cache, all of them)
+// Month-end and bioblitz-day totals from the area's individual observations, for every one the
+// cache doesn't already have (with excluded boxes that's just this month; without a cache, all of them)
 async function loadFromObservations() {
     const all = await allAreaObservations();
     if (!all) return false;
@@ -230,6 +303,12 @@ async function loadFromObservations() {
         if (!(month in trend_data.observations)) trend_data.observations[month] = i;
         if (!(month in trend_data.species)) trend_data.species[month] = taxa.size;
         if (!(month in trend_data.observers)) trend_data.observers[month] = users.size;
+    });
+    eventDays().filter((day) => !(day in trend_data.observations)).forEach((day) => {
+        const upto = dated.filter((obs) => obs.observed_on <= day);
+        trend_data.observations[day] = upto.length;
+        trend_data.species[day] = new Set(upto.filter((obs) => isSpeciesLevel(obs.taxon)).map((obs) => obs.taxon.id)).size;
+        trend_data.observers[day] = new Set(upto.filter((obs) => obs.user?.login).map((obs) => obs.user.login)).size;
     });
     return true;
 }
@@ -270,6 +349,7 @@ trend_buttons.forEach((button) => {
     });
 });
 
+document.getElementById("trend-key").hidden = trend_events.length === 0;
 new ResizeObserver(() => renderChart()).observe(trend_chart);
 
 (async () => {
