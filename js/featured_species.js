@@ -258,7 +258,7 @@ window.FEATURED_SPECIES = {
     "name": "Amorpha canescens",
     "common_name": "leadplant",
     "photo": "https://static.inaturalist.org/photos/209272559/square.jpg",
-    "attribution": "(c) rnicoletti0101, all rights reserved",
+    "attribution": "(c) rnicoletti0101, t\u00fcm haklar\u0131 sakl\u0131d\u0131r",
     "count": 4,
     "ebird_count": 0,
     "ebird_only": false,
@@ -360,6 +360,19 @@ window.FEATURED_SPECIES = {
     "score": 0.023954
    },
    {
+    "taxon_id": 1721810,
+    "name": "Cistothorus paludicola",
+    "common_name": "Western Marsh Wren",
+    "photo": "https://static.inaturalist.org/photos/169117046/square.jpg",
+    "attribution": "(c) Juan Miguel Artigas Azas, all rights reserved, uploaded by Juan Miguel Artigas Azas",
+    "count": 2,
+    "ebird_count": 0,
+    "ebird_only": false,
+    "research_grade": 2,
+    "spaces": 1,
+    "score": 0.023954
+   },
+   {
     "taxon_id": 78903,
     "name": "Rumex fueginus",
     "common_name": "golden dock",
@@ -384,19 +397,6 @@ window.FEATURED_SPECIES = {
     "research_grade": 2,
     "spaces": 1,
     "score": 0.023954
-   },
-   {
-    "taxon_id": 4334,
-    "name": "Pelecanus erythrorhynchos",
-    "common_name": "American White Pelican",
-    "photo": "https://static.inaturalist.org/photos/68158229/square.jpg",
-    "attribution": "(c) Mason Maron, all rights reserved, uploaded by Mason Maron",
-    "count": 1568,
-    "ebird_count": 1554,
-    "ebird_only": false,
-    "research_grade": 14,
-    "spaces": 5,
-    "score": 0.021754
    }
   ],
   "markel": [
