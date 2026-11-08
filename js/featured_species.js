@@ -232,7 +232,7 @@ window.FEATURED_SPECIES = {
     "name": "Bubo virginianus",
     "common_name": "Great Horned Owl",
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/14549085/square.jpg",
-    "attribution": "(c) Paul G. Johnson, some rights reserved (CC BY-NC-SA), uploaded by Paul G. Johnson",
+    "attribution": "(c) Paul G. Johnson, alguns direitos reservados (CC BY-NC-SA), carregado por Paul G. Johnson",
     "count": 127,
     "ebird_count": 103,
     "ebird_only": false,
