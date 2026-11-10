@@ -15,7 +15,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 26,
     "spaces": 2,
-    "score": 0.063651
+    "score": 0.063706
    },
    {
     "taxon_id": 133766,
@@ -28,7 +28,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 2,
     "spaces": 1,
-    "score": 0.054533
+    "score": 0.054579
    },
    {
     "taxon_id": 52378,
@@ -41,7 +41,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 10,
     "spaces": 1,
-    "score": 0.03475
+    "score": 0.03478
    },
    {
     "taxon_id": 130192,
@@ -54,7 +54,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 2,
     "spaces": 1,
-    "score": 0.02557
+    "score": 0.025593
    },
    {
     "taxon_id": 57934,
@@ -67,7 +67,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 25,
     "spaces": 3,
-    "score": 0.022854
+    "score": 0.022878
    },
    {
     "taxon_id": 54781,
@@ -80,7 +80,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 0,
     "spaces": 1,
-    "score": 0.021206
+    "score": 0.021226
    },
    {
     "taxon_id": 63337,
@@ -93,7 +93,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 2,
     "spaces": 2,
-    "score": 0.019321
+    "score": 0.019339
    },
    {
     "taxon_id": 126889,
@@ -106,7 +106,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 11,
     "spaces": 2,
-    "score": 0.019321
+    "score": 0.019339
    },
    {
     "taxon_id": 54835,
@@ -119,7 +119,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 8,
     "spaces": 3,
-    "score": 0.014695
+    "score": 0.01471
    },
    {
     "taxon_id": 867365,
@@ -132,7 +132,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 3,
     "spaces": 2,
-    "score": 0.014356
+    "score": 0.01437
    }
   ],
   "metzger": [
@@ -173,7 +173,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 16,
     "spaces": 3,
-    "score": 0.030569
+    "score": 0.030564
    },
    {
     "taxon_id": 212574,
@@ -186,7 +186,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 0,
     "spaces": 1,
-    "score": 0.028335
+    "score": 0.028331
    },
    {
     "taxon_id": 53268,
@@ -199,7 +199,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 2,
     "spaces": 1,
-    "score": 0.028335
+    "score": 0.028331
    },
    {
     "taxon_id": 4956,
@@ -212,7 +212,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 47,
     "spaces": 5,
-    "score": 0.026001
+    "score": 0.025996
    },
    {
     "taxon_id": 9535,
@@ -238,7 +238,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 24,
     "spaces": 5,
-    "score": 0.02165
+    "score": 0.021647
    },
    {
     "taxon_id": 169448,
@@ -251,7 +251,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 4,
     "spaces": 2,
-    "score": 0.020714
+    "score": 0.02071
    },
    {
     "taxon_id": 158286,
@@ -264,7 +264,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 0,
     "spaces": 1,
-    "score": 0.016102
+    "score": 0.016099
    }
   ],
   "plaster-reservoir": [
@@ -279,7 +279,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 14,
     "spaces": 4,
-    "score": 0.082045
+    "score": 0.08204
    },
    {
     "taxon_id": 58211,
@@ -292,7 +292,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 1,
-    "score": 0.05989
+    "score": 0.059885
    },
    {
     "taxon_id": 75858,
@@ -305,7 +305,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 3,
     "spaces": 1,
-    "score": 0.041194
+    "score": 0.04119
    },
    {
     "taxon_id": 7044,
@@ -318,7 +318,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 10,
     "spaces": 4,
-    "score": 0.037227
+    "score": 0.037224
    },
    {
     "taxon_id": 16079,
@@ -331,7 +331,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 5,
     "spaces": 3,
-    "score": 0.034693
+    "score": 0.034691
    },
    {
     "taxon_id": 7056,
@@ -344,7 +344,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 10,
     "spaces": 5,
-    "score": 0.024529
+    "score": 0.024527
    },
    {
     "taxon_id": 4571,
@@ -357,7 +357,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 2,
     "spaces": 1,
-    "score": 0.023964
+    "score": 0.023961
    },
    {
     "taxon_id": 1721810,
@@ -370,7 +370,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 2,
     "spaces": 1,
-    "score": 0.023964
+    "score": 0.023961
    },
    {
     "taxon_id": 78903,
@@ -383,7 +383,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 1,
-    "score": 0.023964
+    "score": 0.023961
    },
    {
     "taxon_id": 122608,
@@ -396,7 +396,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 2,
     "spaces": 1,
-    "score": 0.023964
+    "score": 0.023961
    }
   ],
   "markel": [
@@ -411,7 +411,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 1,
-    "score": 1.515674
+    "score": 1.515614
    },
    {
     "taxon_id": 78084,
@@ -424,7 +424,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 2,
-    "score": 0.867236
+    "score": 0.867198
    },
    {
     "taxon_id": 63886,
@@ -437,7 +437,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 2,
-    "score": 0.867236
+    "score": 0.867198
    }
   ],
   "wottge": [
@@ -452,7 +452,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 2,
     "spaces": 1,
-    "score": 4.678318
+    "score": 4.678159
    },
    {
     "taxon_id": 216868,
@@ -465,7 +465,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 1,
-    "score": 2.114359
+    "score": 2.114279
    },
    {
     "taxon_id": 77596,
@@ -478,7 +478,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 1,
-    "score": 2.114359
+    "score": 2.114279
    },
    {
     "taxon_id": 229683,
@@ -491,7 +491,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 3,
-    "score": 0.724877
+    "score": 0.724843
    }
   ],
   "the-field": [
@@ -506,7 +506,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 7,
     "spaces": 1,
-    "score": 0.077823
+    "score": 0.077817
    },
    {
     "taxon_id": 174272,
@@ -519,7 +519,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 6,
     "spaces": 2,
-    "score": 0.034002
+    "score": 0.033997
    },
    {
     "taxon_id": 202003,
@@ -532,7 +532,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 5,
     "spaces": 2,
-    "score": 0.032931
+    "score": 0.032927
    },
    {
     "taxon_id": 1511599,
@@ -545,7 +545,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 5,
     "spaces": 2,
-    "score": 0.025646
+    "score": 0.025644
    },
    {
     "taxon_id": 59504,
@@ -558,7 +558,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 1,
-    "score": 0.025575
+    "score": 0.025573
    },
    {
     "taxon_id": 505356,
@@ -571,7 +571,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 3,
     "spaces": 1,
-    "score": 0.025575
+    "score": 0.025573
    },
    {
     "taxon_id": 230594,
@@ -584,7 +584,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 0,
     "spaces": 1,
-    "score": 0.025575
+    "score": 0.025573
    },
    {
     "taxon_id": 154298,
@@ -597,7 +597,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 4,
     "spaces": 2,
-    "score": 0.023271
+    "score": 0.023267
    },
    {
     "taxon_id": 133141,
@@ -610,7 +610,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 3,
     "spaces": 2,
-    "score": 0.018759
+    "score": 0.018757
    },
    {
     "taxon_id": 9535,
@@ -638,7 +638,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 3,
     "spaces": 1,
-    "score": 0.109507
+    "score": 0.1095
    },
    {
     "taxon_id": 49348,
@@ -651,7 +651,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 3,
     "spaces": 1,
-    "score": 0.076196
+    "score": 0.076191
    },
    {
     "taxon_id": 29044,
@@ -664,7 +664,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 10,
     "spaces": 4,
-    "score": 0.053402
+    "score": 0.053397
    },
    {
     "taxon_id": 28398,
@@ -677,7 +677,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 4,
     "spaces": 2,
-    "score": 0.051047
+    "score": 0.051042
    },
    {
     "taxon_id": 4793,
@@ -690,7 +690,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 12,
     "spaces": 5,
-    "score": 0.046916
+    "score": 0.046912
    },
    {
     "taxon_id": 64989,
@@ -703,7 +703,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 3,
     "spaces": 2,
-    "score": 0.039849
+    "score": 0.039846
    },
    {
     "taxon_id": 57356,
@@ -716,7 +716,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 2,
-    "score": 0.022976
+    "score": 0.022974
    },
    {
     "taxon_id": 326155,
@@ -729,7 +729,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 1,
-    "score": 0.017845
+    "score": 0.017843
    },
    {
     "taxon_id": 77183,
@@ -742,7 +742,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 1,
-    "score": 0.017845
+    "score": 0.017843
    },
    {
     "taxon_id": 47963,
@@ -755,7 +755,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 1,
-    "score": 0.017845
+    "score": 0.017843
    }
   ]
  }
