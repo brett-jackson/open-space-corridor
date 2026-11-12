@@ -1,4 +1,4 @@
-"""Which iNaturalist users were likely taking part in the bioblitzes in bioblitz_events.csv?
+"""Which iNaturalist users were likely taking part in the bioblitzes in js/bioblitzes.js?
 
 Run: python3 -I analysis/bioblitz.py
 
@@ -27,10 +27,11 @@ from zoneinfo import ZoneInfo
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "scripts"))
-from areas import API_V1, API_V2, OBS_PER_PAGE, area_for, exclusions, inat_get, is_excluded, read_spaces  # noqa: E402
+from areas import API_V1, API_V2, OBS_PER_PAGE, area_for, exclusions, inat_get, is_excluded, read_js_object, read_spaces  # noqa: E402
 
 USER_AGENT = "open-space-corridor bioblitz analysis"
-EVENTS_CSV = HERE / "bioblitz_events.csv"
+EVENTS_CSV = HERE / "bioblitz_events.csv"      # head counts, where one was recorded
+BIOBLITZES_JS = HERE.parent / "js" / "bioblitzes.js"  # the one list of event dates (the site uses it too)
 OUT = HERE / "out"
 SITES = {"Commons": "broomfield", "Metzger": "metzger", "The Field": "the-field"}
 PROJECTS = [174523, 283372, 287720, 310536]  # Broomfield bioblitz projects (only partly joined)
@@ -135,6 +136,23 @@ def scan_window(counts):
     return best
 
 
+def load_events():
+    """Every bioblitz, oldest first. Dates and sites come from js/bioblitzes.js, so an event is
+    entered once for the site and the analysis; bioblitz_events.csv only adds its head count."""
+    known = {}
+    with EVENTS_CSV.open() as f:
+        for r in csv.DictReader(f):
+            key = (datetime.strptime(r["date"], "%m/%d/%Y").date(), SITES[r["site"]])
+            known[key] = int(r["participants"]) if r["participants"].strip() else None
+    names = {space: site for site, space in SITES.items()}
+    events = [{"date": date.fromisoformat(day), "site": names[space], "space": space,
+               "known": known.get((date.fromisoformat(day), space))}
+              for space, days in (read_js_object(BIOBLITZES_JS) or {}).items() if space in names for day in days]
+    for day, space in sorted(set(known) - {(e["date"], e["space"]) for e in events}):
+        print(f"warning: {day} at {space} is in {EVENTS_CSV.name} but not in js/bioblitzes.js; left out", file=sys.stderr)
+    return sorted(events, key=lambda e: (e["date"], e["space"]))
+
+
 def slot_time(s):
     m = DAY_START * 60 + s * BIN_MIN
     return f"{m // 60:02d}:{m % 60:02d}"
@@ -142,11 +160,7 @@ def slot_time(s):
 
 def main():
     spaces = {s["id"]: s for s in read_spaces()}
-    with EVENTS_CSV.open() as f:
-        events = [{"date": datetime.strptime(r["date"], "%m/%d/%Y").date(), "site": r["site"],
-                   "space": SITES[r["site"]], "known": int(r["participants"]) if r["participants"].strip() else None}
-                  for r in csv.DictReader(f)]
-    events.sort(key=lambda e: e["date"])
+    events = load_events()
     event_dates = defaultdict(set)
     for e in events:
         event_dates[e["space"]].add(e["date"])

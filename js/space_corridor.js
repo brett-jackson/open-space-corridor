@@ -1,15 +1,17 @@
 // Space page: where this space sits in the corridor. Fills the sidebar's mini map (every
-// space's boundary, this one highlighted), the Signature Species section, and the Corridor
-// Connections section, whose rows open that comparison on the landing page map. Needs
-// SPACE (space.html), js/panels.js, js/network.js and, for the map, Leaflet and
-// js/boundaries.js.
+// space's boundary over satellite imagery, this one highlighted), the Signature Species section,
+// the Corridor Connections section, whose rows open that comparison on the landing page map,
+// and the source credits. Needs SPACE (space.html), js/panels.js, js/network.js and, for the
+// map, Leaflet and js/boundaries.js.
 
 (function () {
     const all_spaces = (window.SPACES || []).filter((spc) => Array.isArray(spc.location) && spc.location.length === 2);
     const landing = (hash) => "index.html#" + hash;
 
     // "← All open spaces" returns to the map with this space selected
-    document.querySelector(".sidebar .back")?.setAttribute("href", landing("signature/" + SPACE.id));
+    const first_group = NETWORK_DATA.groups[0]?.id;
+    if (first_group) document.querySelector(".sidebar .back")?.setAttribute("href", landing(first_group + "/" + SPACE.id));
+    document.getElementById("credits")?.replaceChildren(...creditsLine().childNodes);
 
     // Signature Species: the section supplies its own heading
     const signature = document.getElementById("signature-list");
@@ -24,16 +26,15 @@
             const link = el("a", null, "Native " + g.label);
             link.href = landing(g.id + "/" + SPACE.id);
             heading.appendChild(link);
-            block.append(
-                heading,
-                effortLine(SPACE, g.id),
-                connectionsList(SPACE, all_spaces, g.id, (other) => landing(`${g.id}/${SPACE.id}~${other.id}`)),
-            );
+            block.append(heading, effortLine(SPACE, g.id));
+            // With no records of the group here there is nothing to compare: the flag above says so
+            if (spaceEffort(NETWORK_DATA, SPACE.id, g.id).obs > 0) {
+                block.appendChild(connectionsList(SPACE, all_spaces, g.id, (other) => landing(`${g.id}/${SPACE.id}~${other.id}`)));
+            }
             return block;
         });
         const intro = el("p", "panel-lede",
-            "How many of the native species seen here have also been seen at each of its nearest neighbors. " +
-            "Open spaces that share species may help wildlife move along the corridor.");
+            "Native species seen here that have also been seen at each of its nearest neighbors: shared species, not tracked movement.");
         body.replaceChildren(intro, ...blocks);
     }
 

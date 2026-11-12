@@ -58,6 +58,16 @@ def read_js_object(path, pattern=r"=\s*(\{.*\})\s*;?\s*$"):
     return json.loads(match.group(1)) if match else None
 
 
+def read_json(path):
+    """A plain JSON data file (data/), or None when it doesn't exist yet."""
+    return json.loads(path.read_text()) if path.exists() else None
+
+
+def is_hybrid(taxon):
+    """Hybrids (rank "hybrid", or a name with a cross) sit at species level but aren't species."""
+    return taxon.get("rank") == "hybrid" or "\u00d7" in (taxon.get("name") or "")
+
+
 def read_spaces():
     """The site's spaces from js/spaces.js, in order."""
     spaces = read_js_object(SPACES_JS, r"=\s*(\[.*\])\s*;?\s*$")
@@ -108,8 +118,8 @@ def is_excluded(obs, boxes):
 def all_observations(space, user_agent, area=None):
     """Every verifiable observation in the space's area (or `area`), minus its excluded boxes."""
     fields = (
-        "(id:!t,observed_on:!t,geojson:!t,quality_grade:!t,user:(login:!t),"
-        "taxon:(id:!t,name:!t,rank_level:!t,ancestor_ids:!t,preferred_common_name:!t,default_photo:(square_url:!t,attribution:!t)))"
+        "(id:!t,observed_on:!t,geojson:!t,quality_grade:!t,user:(login:!t,icon_url:!t),"
+        "taxon:(id:!t,name:!t,rank:!t,rank_level:!t,ancestor_ids:!t,preferred_common_name:!t,default_photo:(square_url:!t,attribution:!t)))"
     )
     boxes = exclusions(space)
     kept, page = [], 1

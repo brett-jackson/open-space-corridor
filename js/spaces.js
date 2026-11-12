@@ -1,6 +1,7 @@
 // Every open space on the site. `id` is its folder under spaces/ (image, trends_cache.js)
 // and its page URL: space.html?id=<id>. `place_id` is the iNaturalist place;
-// `location` is its [lat, lng], where its marker sits on the landing page map.
+// `location` is its [lat, lng], where its marker sits on the landing page map. `thumb` is a
+// 96px-wide copy of `image` for the map's dots (sips -s format jpeg --resampleWidth 96).
 // Instead of `place_id`, a space can give `bbox`: two opposite corners, [[lat, lng], [lat, lng]],
 // and either kind can list `exclude`: boxes in the same format whose observations are ignored.
 window.SPACES = [
@@ -11,6 +12,7 @@ window.SPACES = [
     "place_id": 150836,
     "description": "Keeping the Field in Broomfield",
     "image": "spaces/broomfield/broomfield-county-commons.avif",
+    "thumb": "spaces/broomfield/thumb.jpg",
     "location": [
       39.932,
       -105.0429
@@ -23,6 +25,7 @@ window.SPACES = [
     "place_id": 141434,
     "description": "Metzger Farm, Est. 1943",
     "image": "spaces/metzger/metzger-image.jpeg",
+    "thumb": "spaces/metzger/thumb.jpg",
     "location": [
       39.9178,
       -105.0284
@@ -35,6 +38,7 @@ window.SPACES = [
     "place_id": 141433,
     "description": "Plaster Reservoir",
     "image": "spaces/plaster-reservoir/plaster-reservoir-image.jpeg",
+    "thumb": "spaces/plaster-reservoir/thumb.jpg",
     "location": [
       39.947,
       -105.0251
@@ -47,6 +51,7 @@ window.SPACES = [
     "place_id": 241801,
     "description": "",
     "image": "spaces/markel/markel.jpg",
+    "thumb": "spaces/markel/thumb.jpg",
     "location": [
       39.9452,
       -105.06
@@ -59,6 +64,7 @@ window.SPACES = [
     "place_id": 241806,
     "description": "",
     "image": "spaces/wottge/wottge.jpg",
+    "thumb": "spaces/wottge/thumb.jpg",
     "location": [
       39.9538,
       -105.0554
@@ -92,6 +98,7 @@ window.SPACES = [
     ],
     "description": "",
     "image": "spaces/the-field/the-field.jpeg",
+    "thumb": "spaces/the-field/thumb.jpg",
     "location": [
       39.9253,
       -105.0671
@@ -104,6 +111,7 @@ window.SPACES = [
     "place_id": 150834,
     "description": "",
     "image": "spaces/mckay-lake/mckay-lake.jpeg",
+    "thumb": "spaces/mckay-lake/thumb.jpg",
     "location": [
       39.953,
       -105.0128

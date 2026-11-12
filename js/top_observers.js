@@ -1,4 +1,6 @@
-// Top three observers in the space's area, ranked by number of verifiable observations or species
+// Top three observers in the space's area, ranked by number of verifiable observations or species.
+// They come from the space's generated cache (SPACE_CACHE.top_observers) when it has them, so
+// the section fills at once; without a cache they're asked from iNaturalist as before.
 const observer_fields = {
     "observation_count" : true,
     "species_count" : true,
@@ -91,12 +93,18 @@ async function observersFromObservations(metric) {
     return { results: results.slice(0, 3) };
 }
 
+// The cache's rows in the API's shape
+function observersFromCache() {
+    const rows = SPACE_CACHE?.top_observers?.[observer_metric];
+    return rows && { results: rows.map((r) => ({ user: { login: r.login, icon_url: r.icon_url }, observation_count: r.observation_count, species_count: r.species_count })) };
+}
+
 async function loadObservers() {
     const request_id = ++observer_request_id;
     const metric = observer_metrics[observer_metric];
-    const json_obj = AREA_EXCLUDE.length > 0
+    const json_obj = observersFromCache() || (AREA_EXCLUDE.length > 0
         ? await observersFromObservations(metric)
-        : await inat_request("observations/observers", observer_fields, {...observer_params, ...metric.params});
+        : await inat_request("observations/observers", observer_fields, {...observer_params, ...metric.params}));
     if (request_id !== observer_request_id) return; // a newer toggle superseded this request
 
     if (!json_obj || json_obj.results.length === 0) {
@@ -106,6 +114,8 @@ async function loadObservers() {
         observer_list.replaceChildren(msg);
         return;
     }
+    // A handful of observations isn't a podium: smaller profiles, no medals
+    observer_list.classList.toggle("is-small", (json_obj.results[0][metric.field] || 0) < 10);
     observer_list.replaceChildren(...json_obj.results.slice(0, 3).map(makeObserver));
 }
 

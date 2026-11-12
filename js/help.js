@@ -40,6 +40,7 @@
         },
     ].filter((t) => t.count > 0);
 
+
     // Groups with few observations here: an invitation to go and look
     const SINGULAR = { bees: "bee", lepidoptera: "butterfly & moth", birds: "bird" }; // "3 bee records"
     NETWORK_DATA.groups.forEach((g) => {
@@ -56,6 +57,44 @@
             group: g.id,
         });
     });
+
+    // From the space's month-end totals (SPACE_CACHE): how fast new species still turn up, and
+    // whether anyone records here in winter
+    const months = Object.keys(SPACE_CACHE?.observations || {}).sort();
+    const upload = { how: "Upload your photos to iNaturalist.", link: "https://www.inaturalist.org/observations/upload", action: "Upload observations" };
+    if (months.length > 12) {
+        const last = months[months.length - 1], before = months[months.length - 13];
+        const obs = SPACE_CACHE.observations[last] - SPACE_CACHE.observations[before];
+        const rate = obs >= 30 ? Math.round((100 * (SPACE_CACHE.species[last] - SPACE_CACHE.species[before])) / obs) : 0;
+        if (rate >= 10) {
+            tasks.push({
+                count: rate,
+                unit: "new species per 100 observations in the past year",
+                title: "New species are still turning up",
+                text: `About 1 in ${Math.round(100 / rate)} observations at ${name} is a species not recorded here before.`,
+                ...upload,
+            });
+        }
+    }
+    const WINTER = ["11", "12", "01", "02", "03"];
+    const recent = months.slice(-37); // three years of month-to-month changes
+    if (recent.length === 37) {
+        let all = 0, winter = 0;
+        recent.slice(1).forEach((m, i) => {
+            const added = SPACE_CACHE.observations[m] - SPACE_CACHE.observations[recent[i]];
+            all += added;
+            if (WINTER.includes(m.slice(5))) winter += added;
+        });
+        if (all >= 50 && winter / all < 0.05) {
+            tasks.push({
+                count: winter,
+                unit: "winter observations in three years",
+                title: "Record what's here in winter",
+                text: `Nearly everything recorded at ${name} is from April to October.`,
+                ...upload,
+            });
+        }
+    }
 
     if (tasks.length === 0) {
         box.replaceChildren(el("p", "panel-hint", "No open tasks here right now. Thank you to everyone who's helped!"));

@@ -17,7 +17,7 @@ source keeps eBird's far larger record counts at birding hotspots from swamping 
 and comparing with the rest of the corridor sinks species that are common everywhere (a
 Mallard is about as common at every pond). The +1 keeps a species unseen elsewhere from
 counting as infinitely rare there. Only species-level (and finer) identifications count, from verifiable
-iNaturalist observations plus, for birds, eBird records (js/gbif_records.js), and species iNaturalist lists as introduced in Colorado are left out
+iNaturalist observations plus, for birds, eBird records (data/gbif_records.json), and species iNaturalist lists as introduced in Colorado are left out
 (native and unknown-status species stay). To be featured, a species needs at least
 MIN_OBSERVATIONS observations in the space, or at least one Research Grade one there;
 every species still counts toward the rest-of-corridor totals, so the filter doesn't change what's unique. A space whose trends cache is a bounding-box stand-in (its place isn't
@@ -32,7 +32,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # for areas.py, even under python -I
 from areas import (ROOT, API_V1, all_observations, area_for, exclusions, inat_get, introduced_species,  # noqa: E402
-                   read_js_object, read_spaces, species_counts)
+                   is_hybrid, read_json, read_spaces, species_counts)
 
 USER_AGENT = "open-space-corridor featured species (iNaturalist user: brettjackson)"
 TOP_N = 10
@@ -72,16 +72,16 @@ def main():
         else:
             counts = species_counts(area, USER_AGENT)
             research[spc["id"]] = {t: v[0] for t, v in species_counts({**area, "quality_grade": "research"}, USER_AGENT).items()}
-        by_space[spc["id"]] = {t: v for t, v in counts.items() if t not in introduced}
+        by_space[spc["id"]] = {t: v for t, v in counts.items() if t not in introduced and not is_hybrid(v[1])}
         inat_total[spc["id"]] = sum(n for n, _ in counts.values())  # all species-level observations there
         print(f"{spc['id']}: {len(by_space[spc['id']])} native or unknown-status species of {len(counts)} ({label})")
 
-    # Birds: add eBird's records (via GBIF, js/gbif_records.js) to each species' count, so a
+    # Birds: add eBird's records (via GBIF, data/gbif_records.json) to each species' count, so a
     # bird seen there only on eBird can rank too. Records land on the species' existing entry
     # (or a subspecies of it) when iNaturalist has one there.
     ebird = {}  # space -> taxon id -> eBird records added
     needs_taxon = set()
-    gbif = read_js_object(ROOT / "js" / "gbif_records.js") or {}
+    gbif = read_json(ROOT / "data" / "gbif_records.json") or {}
     for space_id, taxa in (gbif.get("by_space") or {}).items():
         if space_id not in by_space:
             continue

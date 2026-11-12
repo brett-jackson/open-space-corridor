@@ -48,8 +48,8 @@ function speciesPhoto(url, credit) {
     return img;
 }
 
-// "Signature Species" heading, one-line explanation, ranked list and method note
-function signatureSection(spc, heading_tag = "h3") {
+// "Signature Species" heading, one-line explanation and ranked list (the first `limit` of it)
+function signatureSection(spc, heading_tag = "h3", limit = Infinity) {
     const parts = [el(heading_tag, "panel-heading", "Signature Species")];
     const list = FEATURED.by_space[spc.id] || [];
     if (list.length === 0) {
@@ -58,7 +58,7 @@ function signatureSection(spc, heading_tag = "h3") {
     }
     parts.push(el("p", "panel-lede", "Species seen here more than at other spaces."));
     const ol = el("ol", "featured-species");
-    list.forEach((sp) => {
+    list.slice(0, limit).forEach((sp) => {
         // Its iNaturalist observations at this site; an eBird-only bird has none, so its species page
         const a = el("a");
         a.href = sp.ebird_only
@@ -181,10 +181,11 @@ function connectionsList(spc, spaces, group_id, hrefFor) {
         let detail;
         if (link.similarity === null) detail = "No records yet";
         else if (link.shared === 0) detail = "None shared yet";
-        else detail = `${link.shared} shared · ${pct}%`; // a gray bar marks too few records
+        else if (link.thin) detail = `${link.shared} shared · few records`; // no percentage from a handful of records
+        else detail = `${link.shared} shared · ${pct}% alike`;
         row.appendChild(el("span", "connection-detail", detail));
         const bar = el("span", "connection-bar" + (link.gap ? " is-muted-bar" : ""));
-        bar.style.setProperty("--pct", pct + "%");
+        bar.style.setProperty("--pct", (link.thin ? 0 : pct) + "%");
         bar.setAttribute("aria-hidden", "true");
         row.appendChild(bar);
         const li = el("li");
@@ -194,15 +195,57 @@ function connectionsList(spc, spaces, group_id, hrefFor) {
     return ul;
 }
 
-// "N species · N obs." with a flag when the group is thinly observed at the space
+// "More data needed →" for a thinly observed group at a space, or an invitation when it has none
+function dataFlag(spc, group_id, obs) {
+    const flag = el("a", "network-flag", obs === 0 ? `Be the first to record ${groupLabel(group_id).toLowerCase()} here →` : "More data needed →");
+    flag.href = helpHref(spc);
+    return flag;
+}
+
+// How well surveyed: five bars, one more for every tenfold step in records (under 30, 30+,
+// 300+, 3,000+, 30,000+). Site record counts span four orders of magnitude, so a plain bar
+// would show one site and six slivers.
+function effortMeter(obs) {
+    const level = obs === 0 ? 0 : 1 + [30, 300, 3000, 30000].filter((n) => obs >= n).length;
+    const meter = el("span", "effort-meter");
+    meter.setAttribute("role", "img");
+    meter.setAttribute("aria-label", `Survey effort ${level} of 5`);
+    for (let i = 1; i <= 5; i++) meter.appendChild(el("span", i <= level ? "is-on" : null));
+    return meter;
+}
+
+// "N species · N records" with the effort meter, and a flag when the group is thinly observed
 function effortLine(spc, group_id) {
     const n = (NETWORK_DATA.by_space[spc.id]?.[group_id] || []).length;
     const { obs, low } = spaceEffort(NETWORK_DATA, spc.id, group_id);
-    const p = el("p", "effort-line", `${n} native species · ${obs.toLocaleString()} ${obs === 1 ? "record" : "records"}`);
-    if (low) {
-        const flag = el("a", "network-flag", "More data needed →");
-        flag.href = helpHref(spc);
-        p.appendChild(flag);
-    }
+    const p = el("p", "effort-line");
+    p.append(effortMeter(obs), `${n} native species · ${obs.toLocaleString()} ${obs === 1 ? "record" : "records"}`);
+    if (low) p.appendChild(dataFlag(spc, group_id, obs));
+    return p;
+}
+
+// Species of a group recorded at this space and at no other
+function onlyHere(spc, spaces, group_id) {
+    const elsewhere = new Set(spaces.filter((o) => o.id !== spc.id).flatMap((o) => NETWORK_DATA.by_space[o.id]?.[group_id] || []));
+    return (NETWORK_DATA.by_space[spc.id]?.[group_id] || []).filter((id) => !elsewhere.has(id));
+}
+
+// A collapsed species list: "<summary> (n)" that opens to photo + name rows
+function speciesDetails(summary, ids, spc, group_id) {
+    const details = el("details", "species-details");
+    details.appendChild(el("summary", null, `${summary} (${ids.length})`));
+    const ul = el("ul", "species-grid");
+    sortedSpecies(ids).forEach((id) => ul.appendChild(networkSpeciesItem(id, "li", spc && ebirdOnly(spc.id, group_id, id) ? "eBird only" : "", spc, group_id)));
+    details.appendChild(ul);
+    return details;
+}
+
+// Source credit for both pages; eBird's records are CC BY and reach GBIF about a year behind
+function creditsLine() {
+    const p = el("p", "credits");
+    const link = (text, href) => Object.assign(el("a", null, text), { href, target: "_blank", rel: "noopener" });
+    const through = NETWORK_DATA.ebird_through ? `, through ${NETWORK_DATA.ebird_through}` : "";
+    p.append("Bird records: ", link("eBird", "https://ebird.org/"), " (Cornell Lab of Ornithology) via ", link("GBIF.org", "https://www.gbif.org/dataset/4fa7b334-ce0d-4e88-aaae-2e0c138d049e"),
+        `${through} · Other records: `, link("iNaturalist", "https://www.inaturalist.org/"));
     return p;
 }

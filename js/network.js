@@ -3,17 +3,21 @@
 // corridorLinks() works out which spaces are linked and how similar they are; it needs no
 // map, so space pages use it too. createNetwork() draws it on the landing page map: each
 // space gets a halo sized by how many native species of the group it has, and neighboring
-// spaces (each space's nearest few) are joined by one line whose thickness is their Sørensen
-// similarity, 2 × shared / (A's species + B's species). Dots drift along each line in both
-// directions. Dashed halos and lines mark where more observations are needed.
+// spaces (each space's nearest few) are joined by one line whose thickness is their
+// similarity. Similarity is the data file's equal-effort figure (the better-surveyed space
+// cut down to the other's number of records, so it isn't just a measure of who has been
+// surveyed more), or plain Sørensen, 2 × shared / (A's species + B's species), without one.
+// Widths are spread over the similarities actually present (linkScale), since real pairs sit
+// in a narrow band. Dots run along a line only while it is hovered or selected. Dashed halos
+// and lines mark where more observations are needed.
 
 const NETWORK_BEND = 0.14;        // curve height as a fraction of the distance between spaces
 const NETWORK_STEPS = 28;         // samples along each curve
 const NETWORK_LOW_EFFORT = 30;    // fewer observations of a group than this: "more data needed"
 
 const LINK_NEIGHBORS = 3;         // join each space to its nearest few spaces
-const LINK_MIN_WEIGHT = 2;        // px, for a single shared species
-const LINK_MAX_WEIGHT = 14;       // px, for identical species lists
+const LINK_MIN_WEIGHT = 3.5;      // px, for the least alike pair with enough records
+const LINK_MAX_WEIGHT = 9;        // px, for the most alike pair
 const HALO_MIN_RADIUS = 13;       // px, just outside the 20 px marker dot
 const HALO_MAX_RADIUS = 30;       // px, for the space with the most species in the group
 
@@ -44,16 +48,30 @@ function corridorLinks(spaces, data, group) {
         const sa = speciesAt(a), sb = speciesAt(b);
         const shared = [...sa].filter((id) => sb.has(id)).length;
         const comparable = sa.size > 0 && sb.size > 0;
+        const equal_effort = data.similarity?.[group]?.[a.id + "|" + b.id]; // ids are in sorted order
         const thin = spaceEffort(data, a.id, group).low || spaceEffort(data, b.id, group).low;
         return {
             a, b, shared, thin,
             sizeA: sa.size,
             sizeB: sb.size,
-            similarity: comparable ? (2 * shared) / (sa.size + sb.size) : null,
+            similarity: comparable ? equal_effort ?? (2 * shared) / (sa.size + sb.size) : null,
             gap: !comparable || shared === 0 || thin,
             selectable: sa.size + sb.size > 0,
         };
     });
+}
+
+// The least and most alike of the links with enough records, and a link's line width between
+// them. Thin links don't use it: they are drawn dashed at the minimum width.
+function linkScale(links) {
+    const solid = links.filter((l) => !l.gap).map((l) => l.similarity);
+    const lo = solid.length ? Math.min(...solid) : 0, hi = solid.length ? Math.max(...solid) : 1;
+    const weight = (similarity) => {
+        if (hi - lo < 0.02) return (LINK_MIN_WEIGHT + LINK_MAX_WEIGHT) / 2;
+        const t = Math.max(0, Math.min(1, (similarity - lo) / (hi - lo)));
+        return LINK_MIN_WEIGHT + t * (LINK_MAX_WEIGHT - LINK_MIN_WEIGHT);
+    };
+    return { lo, hi, any: solid.length > 0, weight };
 }
 
 // Observations of the group at a space, and whether that's too few to say much yet
@@ -132,7 +150,9 @@ function createNetwork(map, spaces, data, handlers) {
         const max = Math.max(1, ...counts);
         const label = (data.groups.find((g) => g.id === group)?.label || "species").toLowerCase();
 
-        corridorLinks(spaces, data, group).forEach(({ a, b, shared, similarity, thin, gap, selectable }) => {
+        const links = corridorLinks(spaces, data, group);
+        const scale = linkScale(links);
+        links.forEach(({ a, b, shared, similarity, thin, gap, selectable }) => {
             const pa = map.latLngToLayerPoint(a.location), pb = map.latLngToLayerPoint(b.location);
             const c = controlPoint(pa, pb);
             const t0 = Math.min(0.4, HALO_MIN_RADIUS / (pa.distanceTo(pb) || 1));
@@ -143,15 +163,14 @@ function createNetwork(map, spaces, data, handlers) {
                 tip = `${a.title} ↔ ${b.title}: too few observations to compare yet`;
                 weight = 1.5;
             } else if (thin) {
-                // Tentative: drawn dashed, but still as thick as its similarity so its strength shows
-                tip = `${a.title} ↔ ${b.title}: ${shared} shared ${label} · ${Math.round(similarity * 100)}% similar, from few records`;
-                weight = shared === 0 ? 1.5 : LINK_MIN_WEIGHT + similarity * (LINK_MAX_WEIGHT - LINK_MIN_WEIGHT);
+                tip = `${a.title} ↔ ${b.title}: ${shared} shared ${label}, from few records`;
+                weight = shared === 0 ? 1.5 : LINK_MIN_WEIGHT; // tentative: no width claim from a handful of records
             } else if (shared === 0) {
                 tip = `${a.title} ↔ ${b.title}: no shared ${label} recorded yet`;
                 weight = 1.5;
             } else {
-                tip = `${a.title} ↔ ${b.title}: ${shared} shared ${label} · ${Math.round(similarity * 100)}% similar`;
-                weight = LINK_MIN_WEIGHT + similarity * (LINK_MAX_WEIGHT - LINK_MIN_WEIGHT);
+                tip = `${a.title} ↔ ${b.title}: ${shared} shared ${label} · ${Math.round(similarity * 100)}% alike`;
+                weight = scale.weight(similarity);
             }
             const cls = `net-link${gap ? " is-gap" : ""}${thin && shared > 0 ? " is-thin" : ""}${selectable ? "" : " is-unselectable"} net-${group}`;
             const link = L.polyline(toLatLngs(line), { className: cls, weight, interactive: true })
@@ -167,7 +186,8 @@ function createNetwork(map, spaces, data, handlers) {
             hoverPair(link, a, b);
             items.push({ el: link, a, b, kind: "link" });
 
-            // Drifting dots in both directions, on either side of the line
+            // Dots in both directions, on either side of the line; shown only while the link is
+            // hovered or selected (css), so the resting map doesn't read as traffic
             if (!gap) {
                 [[pa, pb, 1], [pb, pa, -1]].forEach(([from, to, side]) => {
                     const flow = curveLine(from, c, to, t0, 1 - t0, (side * -weight) / 4);

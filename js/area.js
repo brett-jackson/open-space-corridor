@@ -22,6 +22,10 @@ const AREA_EXCLUDE = (SPACE.exclude || []).map(boxParams);
 // Identifies the area, so a trends cache built for a different area is ignored
 const AREA_KEY = JSON.stringify({ area: AREA_PARAMS, exclude: AREA_EXCLUDE });
 
+// The space's generated cache (spaces/<id>/trends_cache.js: month-end totals, the latest
+// totals and the top observers), when it was built for this same area
+const SPACE_CACHE = typeof TRENDS_CACHE !== "undefined" && TRENDS_CACHE.area_key === AREA_KEY ? TRENDS_CACHE : null;
+
 // The same area as an inaturalist.org/observations query string, for links out
 const AREA_QUERY = Object.entries(AREA_PARAMS).map(([k, v]) => k + "=" + encodeURIComponent(v)).join("&");
 

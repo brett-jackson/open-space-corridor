@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Open Space</title>
-  <meta name="description" content="Colorado open spaces.">
+  <meta name="description" content="An open space in the Broomfield and Westminster, Colorado corridor.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&display=swap">
@@ -24,6 +24,7 @@
       <nav class="section-nav" id="section-nav" aria-label="Sections"></nav>
     </aside>
     <main>
+      <div class="space-hero" id="space-hero"></div>
       <section class="page-section" id="how-to-help">
         <h2>How to Help</h2>
         <div class="help-cards" id="help-cards"></div>
@@ -51,11 +52,16 @@
           <button type="button" data-metric="species" aria-pressed="false">Species</button>
           <button type="button" data-metric="observers" aria-pressed="false">Observers</button>
         </div>
+        <div class="segmented" id="trend-view" role="group" aria-label="Show as">
+          <button type="button" data-view="total" aria-pressed="true">Running total</button>
+          <button type="button" data-view="month" aria-pressed="false">Per month</button>
+        </div>
         <div id="trend-body">
           <figure class="trend-chart" id="trend-chart">
             <div class="trend-tooltip" id="trend-tooltip" hidden></div>
           </figure>
-          <p class="trend-note"><span id="trend-status" aria-live="polite"></span> Running totals at the end of each month, verifiable observations only.<span class="trend-key" id="trend-key" hidden>Bioblitz</span></p>
+          <p class="trend-note"><span id="trend-status" aria-live="polite"></span> <span id="trend-caption">Running totals at the end of each month</span>, verifiable observations only.<span class="trend-key" id="trend-key" hidden>Bioblitz</span></p>
+          <p class="trend-note" id="trend-events-note" hidden></p>
           <details class="trend-data">
             <summary>Show data table</summary>
             <div class="trend-table-wrap"><table id="trend-table"></table></div>
@@ -74,6 +80,7 @@
         <h2>Data</h2>
         <div id="data-body"></div>
       </section>
+      <footer class="credits" id="credits"></footer>
     </main>
   </div>
   <script src="js/spaces.js"></script>
@@ -98,17 +105,20 @@
       document.querySelector(".corridor-mini")?.remove();
     } else {
       document.title = SPACE_NAME;
+      document.querySelector('meta[name="description"]').content =
+        `Wildlife recorded at ${SPACE_NAME}${SPACE_SUBTITLE ? " in " + SPACE_SUBTITLE : ""}, how it compares with neighboring open spaces, and how to help.`;
       document.getElementById("space-title").textContent = SPACE_NAME;
       const subtitle = document.getElementById("space-subtitle");
       if (SPACE_SUBTITLE) subtitle.textContent = SPACE_SUBTITLE;
       else subtitle.remove();
       [
         "js/queries.js",
+        "spaces/" + SPACE.id + "/trends_cache.js", // optional; a missing cache just means more live requests
         "js/area.js",
+        "js/space_hero.js",
         "js/top_observers.js",
         "js/names.js",
         "js/site_viz.js",
-        "spaces/" + SPACE.id + "/trends_cache.js", // optional; a missing cache just means more live requests
         "js/bioblitzes.js",
         "js/trends.js",
         "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js",

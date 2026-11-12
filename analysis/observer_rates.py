@@ -71,8 +71,7 @@ def summary(values):
 
 
 def main():
-    with bb.EVENTS_CSV.open() as f:
-        event_dates = sorted({datetime.strptime(r["date"], "%m/%d/%Y").date() for r in csv.DictReader(f)})
+    event_dates = sorted({e["date"] for e in bb.load_events()})
     skip = set(event_dates)
     attended = defaultdict(set)
     with (bb.OUT / "event_users.csv").open() as f:
