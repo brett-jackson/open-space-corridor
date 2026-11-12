@@ -258,7 +258,7 @@ window.FEATURED_SPECIES = {
     "name": "Amorpha canescens",
     "common_name": "leadplant",
     "photo": "https://static.inaturalist.org/photos/209272559/square.jpg",
-    "attribution": "(c) rnicoletti0101, all rights reserved",
+    "attribution": "(c) rnicoletti0101, t\u00fcm haklar\u0131 sakl\u0131d\u0131r",
     "count": 4,
     "ebird_count": 0,
     "ebird_only": false,
