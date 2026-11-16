@@ -4,9 +4,9 @@ const TRENDS_CACHE = {
   "cumulative": true,
   "interval": "month",
   "latest": {
-    "observations": 346,
+    "observations": 347,
     "observers": 75,
-    "species": 169
+    "species": 170
   },
   "observations": {
     "2016-08": 1,
@@ -389,8 +389,8 @@ const TRENDS_CACHE = {
       {
         "icon_url": "https://static.inaturalist.org/attachments/users/icons/1026961/d6d7600f1f60e263e4503cc658282b35-medium.jpeg?1742239016",
         "login": "christian_couch",
-        "observation_count": 127,
-        "species_count": 75
+        "observation_count": 128,
+        "species_count": 76
       },
       {
         "icon_url": "https://static.inaturalist.org/attachments/users/icons/3481177/medium.jpeg?1597763293",
@@ -409,8 +409,8 @@ const TRENDS_CACHE = {
       {
         "icon_url": "https://static.inaturalist.org/attachments/users/icons/1026961/d6d7600f1f60e263e4503cc658282b35-medium.jpeg?1742239016",
         "login": "christian_couch",
-        "observation_count": 127,
-        "species_count": 75
+        "observation_count": 128,
+        "species_count": 76
       },
       {
         "icon_url": "https://static.inaturalist.org/attachments/users/icons/3481177/medium.jpeg?1597763293",
@@ -426,5 +426,5 @@ const TRENDS_CACHE = {
       }
     ]
   },
-  "updated": "2026-11-12"
+  "updated": "2026-11-16"
 };
