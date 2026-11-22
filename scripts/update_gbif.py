@@ -49,6 +49,9 @@ CACHE_DIR = ROOT / ".cache" / "gbif"
 CACHE_MINUTES = 30
 MIN_INTERVAL = 0.5  # GBIF has no fixed limit for light use; stay polite anyway
 FACET_LIMIT = 2000  # more than any space's species or years
+# GBIF fails request URLs over about 4,000 characters (400; 503 "VCL failed" when far longer), so
+# finer outlines are simplified until the URL-encoded WKT fits this, leaving room for the other parameters
+MAX_WKT = 3200
 TAXA = [  # in display order; taxon_key is GBIF's backbone key, inat_taxon_id iNaturalist's id
     {"id": "birds", "label": "Birds", "singular": "Bird", "taxon_key": 212, "inat_taxon_id": 3},  # Aves
 ]
@@ -101,11 +104,48 @@ def ring_wkt(ring, counterclockwise):
     return "(" + ",".join(f"{round(x, 6)} {round(y, 6)}" for x, y in ring) + ")"
 
 
+def simplified(ring, tolerance):
+    """A closed ring with Douglas-Peucker: drops points within `tolerance` degrees of the line
+    between the points kept on either side. Split at the point farthest from the start, so
+    both halves have distinct ends."""
+    def off_line(p, a, b):
+        (x, y), (x1, y1), (x2, y2) = p, a, b
+        dx, dy = x2 - x1, y2 - y1
+        if dx == dy == 0:
+            return ((x - x1) ** 2 + (y - y1) ** 2) ** 0.5
+        return abs(dy * x - dx * y + x2 * y1 - y2 * x1) / (dx * dx + dy * dy) ** 0.5
+
+    pts = ring[:-1]
+    far = max(range(len(pts)), key=lambda i: (pts[i][0] - pts[0][0]) ** 2 + (pts[i][1] - pts[0][1]) ** 2)
+    keep = {0, far}
+    stack = [(0, far), (far, len(pts))]  # index len(pts) is the start again, closing the ring
+    at = lambda i: pts[i % len(pts)]
+    while stack:
+        lo, hi = stack.pop()
+        if hi - lo < 2:
+            continue
+        i = max(range(lo + 1, hi), key=lambda k: off_line(at(k), at(lo), at(hi)))
+        if off_line(at(i), at(lo), at(hi)) > tolerance:
+            keep.add(i)
+            stack += [(lo, i), (i, hi)]
+    out = [pts[i] for i in sorted(keep)]
+    return out + [out[0]]
+
+
 def geojson_wkt(geometry):
+    """A place outline as WKT, simplified until it fits in MAX_WKT characters once URL-encoded."""
     polygons = geometry["coordinates"] if geometry["type"] == "MultiPolygon" else [geometry["coordinates"]]
-    return "MULTIPOLYGON(" + ",".join(
-        "(" + ",".join(ring_wkt(ring, i == 0) for i, ring in enumerate(polygon)) + ")" for polygon in polygons
-    ) + ")"
+    tolerance = 0.0
+    while True:
+        rings = [[simplified(r, tolerance) if tolerance else r for r in polygon] for polygon in polygons]
+        # a ring needs 3 corners; a part whose outer ring collapses is dropped with its holes
+        rings = [[r for r in polygon if len(r) >= 4] for polygon in rings if len(polygon[0]) >= 4]
+        wkt = "MULTIPOLYGON(" + ",".join(
+            "(" + ",".join(ring_wkt(ring, i == 0) for i, ring in enumerate(polygon)) + ")" for polygon in rings
+        ) + ")"
+        if len(urllib.parse.quote_plus(wkt)) <= MAX_WKT:
+            return wkt
+        tolerance = tolerance * 2 or 0.000002  # about 0.2 m to start
 
 
 def box_wkt(corners):

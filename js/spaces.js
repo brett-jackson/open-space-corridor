@@ -74,28 +74,7 @@ window.SPACES = [
     "id": "the-field",
     "title": "The Field Open Space",
     "subtitle": "Broomfield, Colorado",
-    "bbox": [
-      [
-        39.92883528272712,
-        -105.0624834592788
-      ],
-      [
-        39.9217231629372,
-        -105.07171042577862
-      ]
-    ],
-    "exclude": [
-      [
-        [
-          39.92378866149953,
-          -105.07077148513481
-        ],
-        [
-          39.9217560756465,
-          -105.07162459509014
-        ]
-      ]
-    ],
+    "place_id": 243492,
     "description": "",
     "image": "spaces/the-field/the-field.jpeg",
     "thumb": "spaces/the-field/thumb.jpg",
@@ -115,6 +94,28 @@ window.SPACES = [
     "location": [
       39.953,
       -105.0128
+    ]
+  },
+  {
+    "id": "lac-amora",
+    "title": "Lac Amora Open Space",
+    "subtitle": "Broomfield, Colorado",
+    "place_id": 243491,
+    "description": "",
+    "location": [
+      39.9326,
+      -105.107
+    ]
+  },
+  {
+    "id": "ridgeview",
+    "title": "Ridgeview Open Space",
+    "subtitle": "Broomfield, Colorado",
+    "place_id": 243493,
+    "description": "",
+    "location": [
+      39.94,
+      -105.0864
     ]
   }
 ];
