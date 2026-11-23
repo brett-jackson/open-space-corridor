@@ -440,7 +440,7 @@ const TRENDS_CACHE = {
         "icon_url": "",
         "login": "mpchady",
         "observation_count": 1571,
-        "species_count": 261
+        "species_count": 263
       },
       {
         "icon_url": "https://static.inaturalist.org/attachments/users/icons/1976489/medium.jpg?1563202841",
@@ -460,7 +460,7 @@ const TRENDS_CACHE = {
         "icon_url": "",
         "login": "mpchady",
         "observation_count": 1571,
-        "species_count": 261
+        "species_count": 263
       },
       {
         "icon_url": "https://static.inaturalist.org/attachments/users/icons/1976489/medium.jpg?1563202841",
@@ -476,5 +476,5 @@ const TRENDS_CACHE = {
       }
     ]
   },
-  "updated": "2026-11-12"
+  "updated": "2026-11-21"
 };
