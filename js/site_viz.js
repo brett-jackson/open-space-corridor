@@ -71,10 +71,10 @@ function makeTile(obs, ar) {
 
     const info = document.createElement("div");
     info.className = "tile-info";
-    const h2 = document.createElement("h2");
-    h2.textContent = display.text;
-    if (display.scientific) h2.classList.add("scientific");
-    info.appendChild(h2);
+    const h3 = document.createElement("h3");
+    h3.textContent = display.text;
+    if (display.scientific) h3.classList.add("scientific");
+    info.appendChild(h3);
     const p = document.createElement("p");
     p.textContent = [obs.user?.login && "Observed by " + obs.user.login, obs.observed_on]
         .filter(Boolean).join(" · ");

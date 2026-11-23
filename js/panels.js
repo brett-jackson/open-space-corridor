@@ -31,6 +31,16 @@ function groupLabel(group_id) {
     return NETWORK_DATA.groups.find((g) => g.id === group_id)?.label || group_id;
 }
 
+const GROUP_SINGULAR = { birds: "bird", bees: "bee", lepidoptera: "butterfly or moth" };
+const GROUP_SHORT = { birds: "birds", bees: "bees", lepidoptera: "butterflies" };
+function groupUnit(group_id, count) {
+    if (count === 1) return GROUP_SINGULAR[group_id] || groupLabel(group_id).toLowerCase();
+    return groupLabel(group_id).toLowerCase();
+}
+function groupShortLabel(group_id) {
+    return GROUP_SHORT[group_id] || groupLabel(group_id).toLowerCase();
+}
+
 function el(tag, className, text) {
     const node = document.createElement(tag);
     if (className) node.className = className;
@@ -56,7 +66,7 @@ function signatureSection(spc, heading_tag = "h3", limit = Infinity) {
         parts.push(el("p", "panel-hint", "Not enough observations here yet."));
         return parts;
     }
-    parts.push(el("p", "panel-lede", "Species seen here more than at other spaces."));
+    parts.push(el("p", "panel-lede", "All wildlife seen here more than at other spaces."));
     const ol = el("ol", "featured-species");
     list.slice(0, limit).forEach((sp) => {
         // Its iNaturalist observations at this site; an eBird-only bird has none, so its species page
@@ -144,13 +154,18 @@ function sortedSpecies(ids) {
     return [...ids].sort((x, y) => label(x).localeCompare(label(y)));
 }
 
-// A space's links in one group, most similar first and gaps last: [{ other, link }]
+// A space's links in one group, most similar first, then thin links with shared species, then empty gaps
 function connectionsOf(spc, spaces, group_id) {
-    const rank = (link) => (link.gap ? -1 : link.similarity);
+    const tier = (link) => (!link.gap ? 3 : link.shared > 0 ? 2 : link.similarity !== null ? 1 : 0);
     return corridorLinks(spaces, NETWORK_DATA, group_id)
         .filter((l) => l.a.id === spc.id || l.b.id === spc.id)
         .map((l) => ({ other: l.a.id === spc.id ? l.b : l.a, link: l }))
-        .sort((x, y) => rank(y.link) - rank(x.link));
+        .sort((x, y) => {
+            const td = tier(y.link) - tier(x.link);
+            if (td) return td;
+            if (!x.link.gap) return y.link.similarity - x.link.similarity;
+            return y.link.shared - x.link.shared;
+        });
 }
 
 // The space that most needs observations for a thin or empty link (the one with fewer)
@@ -196,8 +211,12 @@ function connectionsList(spc, spaces, group_id, hrefFor) {
 }
 
 // "More data needed →" for a thinly observed group at a space, or an invitation when it has none
-function dataFlag(spc, group_id, obs) {
-    const flag = el("a", "network-flag", obs === 0 ? `Be the first to record ${groupLabel(group_id).toLowerCase()} here →` : "More data needed →");
+function dataFlag(spc, group_id, obs, name_space = false) {
+    const where = name_space ? ` at ${shortName(spc)}` : "";
+    const text = obs === 0
+        ? `Be the first to record ${groupLabel(group_id).toLowerCase()} ${name_space ? `at ${shortName(spc)}` : "here"} →`
+        : `More data needed${where} →`;
+    const flag = el("a", "network-flag", text);
     flag.href = helpHref(spc);
     return flag;
 }
@@ -208,8 +227,10 @@ function dataFlag(spc, group_id, obs) {
 function effortMeter(obs) {
     const level = obs === 0 ? 0 : 1 + [30, 300, 3000, 30000].filter((n) => obs >= n).length;
     const meter = el("span", "effort-meter");
+    const label = `Survey effort ${level} of 5`;
     meter.setAttribute("role", "img");
-    meter.setAttribute("aria-label", `Survey effort ${level} of 5`);
+    meter.setAttribute("aria-label", label);
+    meter.title = label;
     for (let i = 1; i <= 5; i++) meter.appendChild(el("span", i <= level ? "is-on" : null));
     return meter;
 }

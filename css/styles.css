@@ -142,7 +142,7 @@ h1 { margin: 0 0 8px; font-family: var(--font-display); font-weight: 600; font-s
     color: var(--text);
 }
 .tile .tile-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.tile h2 { margin: 0 0 2px; font-size: 1rem; line-height: 1.3; }
+.tile h3 { margin: 0 0 2px; font-size: 1rem; line-height: 1.3; }
 .scientific { font-style: italic; } /* scientific names shown when there's no common name */
 .tile p { margin: 0; font-size: 0.85rem; color: rgba(255, 255, 255, 0.8); }
 @media (hover: none) { .tile-info { opacity: 1; } } /* touch screens can't hover */
@@ -174,6 +174,7 @@ h1 { margin: 0 0 8px; font-family: var(--font-display); font-weight: 600; font-s
 .landing .space-map { height: 100%; min-height: 0; }
 /* The tab bar is a fixed header; only the content below it scrolls */
 .space-panel {
+    position: relative;
     display: flex;
     flex-direction: column;
     min-height: 0;
@@ -182,10 +183,26 @@ h1 { margin: 0 0 8px; font-family: var(--font-display); font-weight: 600; font-s
     border-radius: var(--radius);
     background: var(--bg-box);
 }
+.space-panel.has-more-below::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 28px;
+    background: linear-gradient(transparent, var(--bg-box));
+    pointer-events: none;
+}
 .panel-hint { margin: 0; color: var(--text-muted); font-size: 0.92rem; }
 .panel-title { margin: 0 0 2px; font-family: var(--font-display); font-weight: 600; font-size: 1.8rem; line-height: 1.1; }
-.panel-title a { color: inherit; text-decoration: none; }
-.panel-title a:hover { color: var(--hover-outline); }
+.panel-title a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: rgba(232, 237, 242, 0.35);
+    text-underline-offset: 4px;
+    text-decoration-thickness: 1px;
+}
+.panel-title a:hover { color: var(--hover-outline); text-decoration-color: var(--hover-outline); }
 .panel-subtitle { margin: 0; color: var(--text-muted); font-size: 0.9rem; }
 .panel-heading {
     margin: 22px 0 10px;
@@ -196,6 +213,11 @@ h1 { margin: 0 0 8px; font-family: var(--font-display); font-weight: 600; font-s
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.08em;
+}
+.panel-heading-group {
+    padding-left: 9px;
+    border-left: 3px solid var(--net-color);
+    color: var(--text);
 }
 .featured-species { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .featured-species a {
@@ -238,15 +260,51 @@ h1 { margin: 0 0 8px; font-family: var(--font-display); font-weight: 600; font-s
 .featured-meta { color: var(--text-muted); font-size: 0.75rem; margin-top: 2px; }
 .panel-lede { margin: -2px 0 12px; color: var(--text-muted); font-size: 0.85rem; line-height: 1.4; }
 .panel-note { margin: 16px 0 0; color: var(--text-muted); font-size: 0.75rem; line-height: 1.45; }
-/* Panel header: the species group toggle */
+/* Panel header: toggleable color-coded chips for each wildlife group */
 .panel-tabs { flex: none; padding: 12px 14px; border-bottom: 1px solid var(--outline); }
-.panel-tabs .segmented { margin: 0; flex-wrap: wrap; border-radius: 18px; }
-.panel-tabs .segmented button { white-space: nowrap; }
+.group-toggles { display: flex; flex-wrap: wrap; gap: 6px; }
+.group-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 5px 12px;
+    border: 1px solid var(--outline);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.group-toggle:hover { border-color: var(--text-muted); color: var(--text); }
+.group-toggle[aria-pressed="true"] {
+    border-color: var(--net-color);
+    background: color-mix(in srgb, var(--net-color) 16%, var(--bg));
+    color: var(--text);
+}
+.group-toggle[aria-pressed="true"]:hover {
+    background: color-mix(in srgb, var(--net-color) 24%, var(--bg));
+    color: var(--text);
+}
+.group-toggle:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 2px; }
+.group-dot {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--net-color);
+    opacity: 0.4;
+    transition: opacity 0.15s ease;
+}
+.group-toggle[aria-pressed="true"] .group-dot { opacity: 1; }
 .panel-content { flex: 1; min-height: 0; overflow-y: auto; padding: 20px 18px; }
 .panel-content > :first-child { margin-top: 0; } /* the content's padding sets the gap below the tabs */
-.panel-tabs button:hover { color: var(--text); }
-.panel-tabs button[aria-selected="true"] { background: var(--text); border-color: var(--text); color: var(--bg); }
-.panel-tabs button:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 2px; }
 
 /* Space summary: explore button and corridor connections (shared with space pages) */
 .panel-explore {
@@ -287,8 +345,9 @@ a.connection:focus-visible { outline: 3px solid var(--hover-outline); outline-of
 .connections .connection { flex-wrap: wrap; }
 .connections .connection-detail { white-space: nowrap; }
 .connection-bar.is-muted-bar { background: linear-gradient(to right, var(--text-muted) var(--pct), var(--outline) var(--pct)); opacity: 0.6; }
-.effort-line { margin: 0 0 12px; color: var(--text-muted); font-size: 0.85rem; }
-.effort-line .network-flag { margin: 2px 0 0; }
+.effort-line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0 0 12px; color: var(--text-muted); font-size: 0.85rem; }
+.effort-line .effort-meter { margin-right: -2px; }
+.effort-line .network-flag { margin: 0; }
 /* Survey effort: five rising bars, lit up to the space's level */
 .effort-meter { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; margin-right: 8px; vertical-align: -1px; }
 .effort-meter span { width: 3px; border-radius: 1px; background: var(--outline); }
@@ -302,12 +361,25 @@ a.connection:focus-visible { outline: 3px solid var(--hover-outline); outline-of
 .network-count-row:hover .network-count-name { color: var(--hover-outline); }
 .network-count-name { font-weight: 600; }
 .network-count-row:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 1px; border-radius: 4px; }
-.network-count-effort { flex-basis: 100%; color: var(--text-muted); font-size: 0.78rem; font-variant-numeric: tabular-nums; }
-/* What the map's lines mean: a wedge from the least to the most alike pair, and the dashed style */
-.map-key { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0 0 12px; color: var(--text-muted); font-size: 0.78rem; }
-.key-wedge { flex: none; width: 36px; height: 9px; background: var(--net-color); clip-path: polygon(0 36%, 100% 0, 100% 100%, 0 64%); }
+.network-count-effort, .network-breakdown { flex-basis: 100%; color: var(--text-muted); font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+.breakdown-item { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.breakdown-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--net-color); }
+/* Concise visual key for the map: circle size, line thickness, and dashed styles */
+.map-key { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin: 0 0 12px; color: var(--text-muted); font-size: 0.76rem; }
+.key-item { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.key-halo { flex: none; width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid var(--net-color); background: color-mix(in srgb, var(--net-color) 24%, transparent); }
+.key-halo.is-multi { border-color: rgba(232, 237, 242, 0.75); background: rgba(232, 237, 242, 0.16); }
+.key-wedge { flex: none; width: 28px; height: 8px; background: var(--net-color); clip-path: polygon(0 36%, 100% 0, 100% 100%, 0 64%); }
+.key-wedge.is-multi { background: rgba(232, 237, 242, 0.75); }
 .key-wedge.is-flat { height: 5px; border-radius: 3px; clip-path: none; }
-.key-dash { flex: none; width: 22px; margin-left: 10px; border-top: 2px dashed rgba(255, 255, 255, 0.75); }
+.key-dash { flex: none; width: 18px; border-top: 2px dashed rgba(255, 255, 255, 0.75); }
+.key-dash.is-thin { border-top-color: var(--net-color); }
+.key-dash.is-thin.is-multi {
+    width: 21px;
+    height: 2px;
+    border-top: none;
+    background: repeating-linear-gradient(to right, #5cc8ff 0 5px, transparent 5px 8px, #f5b83d 8px 13px, transparent 13px 16px, #c792ff 16px 21px);
+}
 
 /* A space hovered on the map or in the panel: its marker or dot is ringed */
 .map-marker > div.is-hover .map-card { border-color: var(--hover-outline); box-shadow: 0 0 0 3px rgba(125, 176, 255, 0.45), 0 3px 10px rgba(0, 0, 0, 0.45); }
@@ -376,7 +448,11 @@ a.connection:focus-visible { outline: 3px solid var(--hover-outline); outline-of
 .panel-back:hover { color: var(--hover-outline); }
 .panel-back:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 2px; border-radius: 4px; }
 .panel-title-small { font-size: 1.45rem; margin-bottom: 6px; }
-.network-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; align-items: start; margin-top: 14px; }
+.network-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto 1fr; column-gap: 12px; align-items: start; margin-top: 14px; }
+.network-column { display: grid; grid-template-rows: subgrid; grid-row: span 2; }
+@supports not (grid-template-rows: subgrid) {
+    .network-column { display: block; }
+}
 .species-list, .species-grid { list-style: none; margin: 0; padding: 0; }
 .species-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 12px; margin-top: 6px; }
 /* Collapsed species lists ("Seen at both", "Seen only here") */
@@ -401,29 +477,54 @@ a.connection:focus-visible { outline: 3px solid var(--hover-outline); outline-of
 .leaflet-tooltip.net-tooltip::before { display: none; }
 .is-dim { opacity: 0.4; } /* links away from the hovered space: quieter, never gone */
 
-/* Halos sized by species, lines by similarity, dashed where data is thin */
-.net-link { stroke: var(--net-color); stroke-opacity: 0.85; stroke-linecap: round; fill: none; cursor: pointer; filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.7)); transition: opacity 0.15s ease, stroke-opacity 0.15s ease; }
+/* Halos sized by species, lines by similarity (width + opacity), dashed where data is thin */
+.net-link { stroke: var(--net-color); stroke-opacity: var(--link-opacity, 0.85); stroke-linecap: round; fill: none; cursor: pointer; filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.7)); transition: opacity 0.15s ease, stroke-opacity 0.15s ease; }
 .net-link:hover, .net-link.is-out { stroke-opacity: 1; }
 /* The selected link glows along its own shape instead of the browser's rectangular focus box */
 .net-link:focus { outline: none; }
 .net-link.is-selected, .net-link:focus-visible {
     stroke-opacity: 1;
-    filter: drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 7px var(--net-color)) drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
+    filter: drop-shadow(0 0 0.8px rgba(255, 255, 255, 0.7)) drop-shadow(0 0 2.5px var(--net-color)) drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.85));
 }
 .net-node.is-selected { stroke-width: 3; fill-opacity: 0.38; }
 .is-muted { opacity: 0.6; }
-.net-link.is-gap:not(.is-thin) { stroke: #fff; stroke-opacity: 0.85; stroke-width: 2px; stroke-dasharray: 6 6; stroke-linecap: butt; }
-/* Tentative link: its group color and similarity thickness, dashed because it rests on few observations */
-.net-link.is-thin { stroke-dasharray: 8 7; stroke-linecap: butt; }
+.net-link.is-gap:not(.is-thin) { stroke: #fff; stroke-opacity: 0.72; stroke-width: 2px; stroke-dasharray: 6 6; stroke-linecap: butt; }
+/* Tentative link: its group color, dashed because it rests on few observations */
+.net-link.is-thin { stroke-opacity: 0.78; stroke-dasharray: 8 7; stroke-linecap: butt; }
 .net-link.is-unselectable { cursor: default; }
-/* Dots along a link appear only while it is hovered or selected */
-.net-flow { stroke: #fff; stroke-opacity: 0.9; stroke-linecap: round; stroke-dasharray: 0 22; fill: none; opacity: 0; animation: net-flow 2.4s linear infinite; pointer-events: none; transition: opacity 0.15s ease; }
-.net-flow.is-out, .net-flow.is-selected { opacity: 1; }
-@keyframes net-flow { to { stroke-dashoffset: -22; } }
+/* Soft non-directional feathered light sweep along a link while hovered or selected:
+   four concentric dash lengths locked to the same moving center fade gradually along the arc while staying crisp inside the ribbon */
+.net-sweep {
+    stroke: #fff;
+    stroke-linecap: round;
+    fill: none;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+.net-sweep-outer { stroke-opacity: 0.11; stroke-dasharray: 48 132; --sweep-from: 49; --sweep-to: -101; filter: blur(0.6px); }
+.net-sweep-mid { stroke-opacity: 0.14; stroke-dasharray: 32 148; --sweep-from: 41; --sweep-to: -109; filter: blur(0.45px); }
+.net-sweep-inner { stroke-opacity: 0.17; stroke-dasharray: 18 162; --sweep-from: 34; --sweep-to: -116; filter: blur(0.3px); }
+.net-sweep-core { stroke-opacity: 0.22; stroke-dasharray: 8 172; --sweep-from: 29; --sweep-to: -121; }
+.net-sweep.is-out, .net-sweep.is-selected {
+    opacity: 1;
+    animation: net-sweep 3.6s ease-in-out infinite alternate;
+}
+@keyframes net-sweep {
+    from { stroke-dashoffset: var(--sweep-from); }
+    to { stroke-dashoffset: var(--sweep-to); }
+}
 .net-node { stroke: var(--net-color); stroke-width: 2; fill: var(--net-color); fill-opacity: 0.22; filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.6)); transition: opacity 0.15s ease; }
+.net-node.is-multi { stroke: rgba(232, 237, 242, 0.65); fill: rgba(232, 237, 242, 0.14); }
 .net-node.needs-data { stroke-dasharray: 4 4; fill-opacity: 0.08; }
 .net-node.is-empty { stroke: #fff; stroke-opacity: 0.6; fill: none; }
-@media (prefers-reduced-motion: reduce) { .net-flow { animation: none; } }
+@media (prefers-reduced-motion: reduce) {
+    .net-sweep.is-out, .net-sweep.is-selected { animation: none; }
+    .net-sweep-outer.is-out, .net-sweep-outer.is-selected,
+    .net-sweep-inner.is-out, .net-sweep-inner.is-selected,
+    .net-sweep-core.is-out, .net-sweep-core.is-selected { opacity: 0; }
+    .net-sweep-mid.is-out, .net-sweep-mid.is-selected { stroke-dasharray: none; stroke-opacity: 0.2; filter: none; }
+}
 
 /* Panel legend and data-needed flags */
 .network-legend { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 0.8rem; color: var(--text-muted); }
@@ -432,31 +533,67 @@ a.connection:focus-visible { outline: 3px solid var(--hover-outline); outline-of
 .legend-halo { width: 14px; margin: 0 6px; border-radius: 50%; border: 2px solid var(--net-color); background: color-mix(in srgb, var(--net-color) 22%, transparent); }
 .legend-line { height: 6px; border-radius: 3px; background: var(--net-color); }
 .legend-gap { height: 0; border-top: 2px dashed rgba(255, 255, 255, 0.6); }
-.network-flag { display: block; margin: -2px 0 6px; color: #f0c674; font-size: 0.75rem; text-decoration: none; }
-a.network-flag:hover { text-decoration: underline; }
+.network-flag {
+    display: inline-flex;
+    align-items: center;
+    margin: 2px 0 8px;
+    padding: 2px 10px;
+    border: 1px dashed var(--text-muted);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text);
+    font-size: 0.74rem;
+    font-weight: 500;
+    line-height: 1.45;
+    text-decoration: none;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+a.network-flag:hover {
+    border-style: solid;
+    border-color: var(--hover-outline);
+    background: rgba(125, 176, 255, 0.1);
+    color: var(--hover-outline);
+}
+a.network-flag:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 2px; }
 .legend-flow { height: 0; border-top: 3px dotted rgba(255, 255, 255, 0.9); }
-.comparison-caveat { margin: -4px 0 14px; }
+.comparison-caveat { margin: -2px 0 14px; }
 
-/* Short name labels beside each space's dot */
+/* Short name labels beside each space's dot; positioned dynamically to avoid collisions */
 .map-label {
     position: absolute;
     left: 24px;
     top: 50%;
     transform: translateY(-50%);
     padding: 1px 7px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 4px;
-    background: rgba(16, 22, 28, 0.8);
+    background: rgba(16, 22, 28, 0.92);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
     color: var(--text);
     font: 600 12px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     white-space: nowrap;
     pointer-events: none;
+    transition: opacity 0.15s ease;
 }
+.map-label.pos-left { left: auto; right: 24px; }
+.map-label.pos-top { left: 50%; top: auto; bottom: 24px; transform: translateX(-50%); }
+.map-label.pos-bottom { left: 50%; top: 24px; transform: translateX(-50%); }
+.map-label.is-crowded { opacity: 0; }
+.map-marker > div.is-hover .map-label.is-crowded,
+.map-marker > div.is-selected .map-label.is-crowded { opacity: 1; }
+.basemap-imagery { filter: brightness(0.86) saturate(0.88); }
+.space-map.is-touch-scroll.leaflet-container { touch-action: pan-y pinch-zoom; }
 
 @media (max-width: 800px) {
     .landing { height: auto; }
     .landing-body { grid-template-columns: minmax(0, 1fr); }
-    .landing .space-map { height: 62vh; min-height: 360px; }
+    .landing .space-map { height: 52vh; min-height: 320px; }
     .space-panel, .panel-content { overflow: visible; }
+    .space-panel.has-more-below::after { display: none; }
+    .group-toggle { min-height: 40px; padding: 6px 12px; }
+}
+@media (max-width: 600px) {
+    .map-label { font-size: 10.5px; padding: 1px 5px; }
 }
 
 .space-map {
@@ -567,6 +704,16 @@ html { scroll-behavior: smooth; }
 .space-stats div { display: flex; flex-direction: column-reverse; }
 .space-stats dd { margin: 0; font-size: clamp(1.5rem, 3.4vw, 2.2rem); font-weight: 600; line-height: 1.15; font-variant-numeric: tabular-nums; }
 .space-stats dt { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.stats-source {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 10px 0 0;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+}
+.stats-source .source-logo { width: 18px; height: 18px; margin: 0; vertical-align: middle; }
 
 /* Top observers: three ranked profiles side by side */
 .segmented {
@@ -590,8 +737,9 @@ html { scroll-behavior: smooth; }
     letter-spacing: 0.08em;
     cursor: pointer;
 }
-.segmented button:hover { color: var(--text); }
-.segmented button[aria-pressed="true"] { background: var(--text); color: var(--bg); }
+.segmented button:hover:not([aria-pressed="true"]):not([aria-selected="true"]) { color: var(--text); }
+.segmented button[aria-pressed="true"],
+.segmented button[aria-selected="true"] { background: var(--text); color: var(--bg); }
 .segmented button:focus-visible { outline: 3px solid var(--hover-outline); outline-offset: 2px; }
 .observers[aria-busy="true"] { opacity: 0.5; transition: opacity 0.15s ease; }
 .observers .empty { grid-column: 1 / -1; }
@@ -750,7 +898,9 @@ html { scroll-behavior: smooth; }
     .section-nav { flex-basis: 100%; flex-direction: row; overflow-x: auto; border-left: none; }
     .section-nav a { flex: none; margin: 0; border-left: none; border-bottom: 2px solid transparent; white-space: nowrap; }
     .section-nav a[aria-current="true"] { border-bottom-color: var(--hover-outline); }
-    .page-section { scroll-margin-top: 72px; }
+    .page-section { scroll-margin-top: calc(var(--sticky-h, 120px) + 12px); }
+    .segmented button { min-height: 38px; padding: 7px 14px; }
+    #trend-view { margin-left: 0; }
     .observers { gap: 8px; }
     .observer a { padding: 12px 4px; }
     .observer-avatar { width: min(128px, 26vw); height: min(128px, 26vw); font-size: 2.6rem; }

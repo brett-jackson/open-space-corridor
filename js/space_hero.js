@@ -23,6 +23,14 @@
             stats.appendChild(item);
         });
         hero.appendChild(stats);
+        const source = document.createElement("p");
+        source.className = "stats-source";
+        const logo = document.createElement("img");
+        logo.className = "source-logo";
+        logo.src = "images/logos/inaturalist.png";
+        logo.alt = "";
+        source.append(logo, "iNaturalist verifiable observations");
+        hero.appendChild(source);
     }
     if (!hero.firstChild) hero.remove();
 })();

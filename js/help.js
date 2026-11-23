@@ -8,30 +8,31 @@
     if (!box) return;
     const counts = window.HELP_TASKS?.by_space?.[SPACE.id] || {};
     const name = shortName(SPACE);
+    const possessive = name.endsWith("s") ? `${name}'` : `${name}'s`;
     const inat = (path, params) => `https://www.inaturalist.org/${path}?${AREA_QUERY}&${params}`;
 
     const tasks = [
         {
             count: counts.phenology,
-            unit: "flowering plant observations",
+            unit: counts.phenology === 1 ? "flowering plant without flowering status" : "flowering plants without flowering status",
             title: "Record what's blooming",
-            text: `Annotate ${name}'s flowers to help show when different species are blooming.`,
+            text: `Annotate ${possessive} flowers to help show when different species are blooming.`,
             how: "Open each observation in Identify, choose Annotations, and pick Flowers, Flower Buds, Fruits or Seeds, or No Flowers or Fruits.",
             link: inat("observations/identify", "taxon_id=47125&without_term_id=12&quality_grade=needs_id,research&reviewed=any"),
             action: "Add flowering status",
         },
         {
             count: counts.pollinator_plants,
-            unit: "bee & butterfly observations",
+            unit: counts.pollinator_plants === 1 ? "bee or butterfly without a plant recorded" : "bees & butterflies without a plant recorded",
             title: "Name the flower a pollinator visited",
-            text: `Help us understand what flowers ${name}'s pollinators are visiting.`,
+            text: `Help us understand what flowers ${possessive} pollinators are visiting.`,
             how: 'Where the plant is visible, open the observation, choose "Add a Field", search for "Nectar / Pollen delivering plant" and enter the plant.',
             link: inat("observations", "taxon_ids=630955,47157&verifiable=true&subview=grid"),
             action: "Browse pollinators",
         },
         {
             count: counts.needs_id,
-            unit: "observations need an ID",
+            unit: counts.needs_id === 1 ? "observation needs an ID" : "observations need an ID",
             title: "Help with identifications",
             text: "Confirm or adjust identifications to improve data quality.",
             how: "Start with groups you know well; use the filters in Identify to narrow by taxon.",
@@ -50,7 +51,7 @@
             count: obs,
             unit: `${SINGULAR[g.id] || g.label.toLowerCase()} ${obs === 1 ? "record" : "records"} so far`,
             title: obs === 0 ? `Be the first to record ${g.label.toLowerCase()} at ${name}` : `Look for ${g.label.toLowerCase()} at ${name}`,
-            text: `Fill in the corridor map by observing ${name}'s ${g.label.toLowerCase()}.`,
+            text: `Fill in the corridor map by observing ${possessive} ${g.label.toLowerCase()}.`,
             how: "Upload your photos to iNaturalist.",
             link: "https://www.inaturalist.org/observations/upload",
             action: "Upload observations",

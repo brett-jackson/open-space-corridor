@@ -64,6 +64,7 @@ OUT = ROOT / "data" / "gbif_records.json"  # read by the other update scripts, n
 # GBIF backbone name -> iNaturalist scientific name, for GBIF taxonomy errors the taxa API can't match
 INAT_OVERRIDES = {
     "Falco atricapillus": "Astur atricapillus",  # American Goshawk, which GBIF misfiles under Falco
+    "Troglodytes hiemalis": "Nannus hiemalis",   # Winter Wren, moved to Nannus on iNaturalist
 }
 
 _last_request = 0.0
@@ -298,7 +299,8 @@ def main():
     for taxon_id, sp in previous.items():  # matches from the last run, to skip looking them up again
         if sp.get("source") == "inaturalist":
             for gbif_name in sp.get("gbif_names", []):
-                known.setdefault(gbif_name, {"id": int(taxon_id), "name": sp["name"], "common_name": sp["common_name"]})
+                if gbif_name not in INAT_OVERRIDES:
+                    known.setdefault(gbif_name, {"id": int(taxon_id), "name": sp["name"], "common_name": sp["common_name"]})
     species, out_key = {}, {}
     for key in sorted(species_keys):
         info = gbif_get(f"species/{key}")

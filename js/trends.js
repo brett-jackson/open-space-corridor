@@ -312,7 +312,7 @@ function renderTable(points) {
         th.textContent = t;
         head.appendChild(th);
     });
-    const rows = points.map((p) => {
+    const rows = points.slice().reverse().map((p) => {
         const tr = document.createElement("tr");
         const events = trend_events.filter((date) => date.startsWith(p.key)).map((date) => eventLabel(date).replace("Bioblitz ", ""));
         [trend_view === "month" ? monthLabel(p.key).replace("End of ", "") : monthLabel(p.key), p.value.toLocaleString(), ...(trend_events.length ? [events.join(", ")] : [])].forEach((t) => {

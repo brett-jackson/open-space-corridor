@@ -9,8 +9,7 @@
     const landing = (hash) => "index.html#" + hash;
 
     // "← All open spaces" returns to the map with this space selected
-    const first_group = NETWORK_DATA.groups[0]?.id;
-    if (first_group) document.querySelector(".sidebar .back")?.setAttribute("href", landing(first_group + "/" + SPACE.id));
+    document.querySelector(".sidebar .back")?.setAttribute("href", landing("all/" + SPACE.id));
     document.getElementById("credits")?.replaceChildren(...creditsLine().childNodes);
 
     // Signature Species: the section supplies its own heading

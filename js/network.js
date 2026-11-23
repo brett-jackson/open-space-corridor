@@ -1,14 +1,11 @@
-// Corridor networks, one species group at a time (data: js/species_network.js).
+// Corridor networks, showing one or more species groups at once (data: js/species_network.js).
 //
 // corridorLinks() works out which spaces are linked and how similar they are; it needs no
-// map, so space pages use it too. createNetwork() draws it on the landing page map: each
-// space gets a halo sized by how many native species of the group it has, and neighboring
-// spaces (each space's nearest few) are joined by one line whose thickness is their
-// similarity. Similarity is the data file's equal-effort figure (the better-surveyed space
-// cut down to the other's number of records, so it isn't just a measure of who has been
-// surveyed more), or plain Sørensen, 2 × shared / (A's species + B's species), without one.
-// Widths are spread over the similarities actually present (linkScale), since real pairs sit
-// in a narrow band. Dots run along a line only while it is hovered or selected. Dashed halos
+// map, so space pages use it too. createNetwork() draws active groups on the landing page map:
+// each space gets a halo sized by its native species, and neighboring spaces (each space's
+// nearest few) are joined by curved lines whose thickness reflects equal-effort similarity.
+// When multiple groups are active, shared strands run side by side as parallel ribbons. A
+// soft non-directional light sweep highlights hovered or selected connections. Dashed halos
 // and lines mark where more observations are needed.
 
 const NETWORK_BEND = 0.14;        // curve height as a fraction of the distance between spaces
@@ -16,10 +13,18 @@ const NETWORK_STEPS = 28;         // samples along each curve
 const NETWORK_LOW_EFFORT = 30;    // fewer observations of a group than this: "more data needed"
 
 const LINK_NEIGHBORS = 3;         // join each space to its nearest few spaces
-const LINK_MIN_WEIGHT = 3.5;      // px, for the least alike pair with enough records
-const LINK_MAX_WEIGHT = 9;        // px, for the most alike pair
+const LINK_MIN_WEIGHT = 2.2;      // px, single-group mode, least alike pair with enough records
+const LINK_MAX_WEIGHT = 10;       // px, single-group mode, most alike pair
+const MULTI_MIN_WEIGHT = 1.8;     // px, multi-group parallel strand minimum
+const MULTI_MAX_WEIGHT = 7.5;     // px, multi-group parallel strand maximum
+const MULTI_SIM_LO = 0.25;        // shared absolute similarity floor in multi-group mode
+const MULTI_SIM_HI = 0.85;        // shared absolute similarity ceiling in multi-group mode
+const LINK_CURVE = 1.4;           // mild power curve so strong corridors stand out clearly
+const LINK_MIN_OPACITY = 0.48;    // weaker solid links recede slightly; strongest sit near 1
+const LINK_MAX_OPACITY = 0.96;
+const STRAND_GAP = 2.5;           // px between parallel strands in multi-group mode
 const HALO_MIN_RADIUS = 13;       // px, just outside the 20 px marker dot
-const HALO_MAX_RADIUS = 30;       // px, for the space with the most species in the group
+const HALO_MAX_RADIUS = 30;       // px, for the space with the most species
 
 function spaceDistanceKm(a, b) {
     const dlat = (a.location[0] - b.location[0]) * 111.32;
@@ -61,17 +66,20 @@ function corridorLinks(spaces, data, group) {
     });
 }
 
-// The least and most alike of the links with enough records, and a link's line width between
-// them. Thin links don't use it: they are drawn dashed at the minimum width.
-function linkScale(links) {
+// The least and most alike of the links with enough records, and a link's width and opacity
+// between them. Thin links don't use it: they are drawn dashed at the minimum width.
+function linkScale(links, min_w = LINK_MIN_WEIGHT, max_w = LINK_MAX_WEIGHT, fixed_lo = null, fixed_hi = null) {
     const solid = links.filter((l) => !l.gap).map((l) => l.similarity);
-    const lo = solid.length ? Math.min(...solid) : 0, hi = solid.length ? Math.max(...solid) : 1;
-    const weight = (similarity) => {
-        if (hi - lo < 0.02) return (LINK_MIN_WEIGHT + LINK_MAX_WEIGHT) / 2;
-        const t = Math.max(0, Math.min(1, (similarity - lo) / (hi - lo)));
-        return LINK_MIN_WEIGHT + t * (LINK_MAX_WEIGHT - LINK_MIN_WEIGHT);
+    const lo = fixed_lo !== null ? fixed_lo : (solid.length ? Math.min(...solid) : 0);
+    const hi = fixed_hi !== null ? fixed_hi : (solid.length ? Math.max(...solid) : 1);
+    const norm = (similarity) => {
+        if (hi - lo < 0.02) return 0.55;
+        const linear = Math.max(0, Math.min(1, (similarity - lo) / (hi - lo)));
+        return Math.pow(linear, LINK_CURVE);
     };
-    return { lo, hi, any: solid.length > 0, weight };
+    const weight = (similarity) => min_w + norm(similarity) * (max_w - min_w);
+    const opacity = (similarity) => LINK_MIN_OPACITY + norm(similarity) * (LINK_MAX_OPACITY - LINK_MIN_OPACITY);
+    return { lo, hi, any: solid.length > 0, weight, opacity };
 }
 
 // Observations of the group at a space, and whether that's too few to say much yet
@@ -82,21 +90,26 @@ function spaceEffort(data, space_id, group) {
 
 function createNetwork(map, spaces, data, handlers) {
     const layer = L.layerGroup();
-    let group = null;
-    let items = [];             // { el: layer, a, b, kind } for focus styling
+    let active_groups = [];     // active group ids shown on the map
+    let items = [];             // { el: layer, a, b, kind, group } for focus styling
     let focused_space = null;   // a hovered space: only its connections stay bright
     let focused_pair = null;    // a hovered connection: only that pair stays bright
+    let focused_group = null;   // when hovering one strand of a multi-strand pair
     let selected_space = null;  // the clicked space: its connections glow, the rest dims
     let selected_pair = null;   // the clicked connection: it glows, the rest dims
 
     function applyFocus() {
         const touches = (set, a, b, kind) => (kind === "node" ? set.has(a.id) : set.has(a.id) && set.has(b.id));
-        items.forEach(({ el, a, b, kind }) => {
+        items.forEach(({ el, a, b, kind, group }) => {
             const node = el.getElement();
             if (!node) return;
             let state = "";
             if (focused_pair) {
-                state = touches(focused_pair, a, b, kind) ? "is-out" : "is-dim";
+                if (touches(focused_pair, a, b, kind)) {
+                    state = (kind === "node" || !focused_group || group === focused_group) ? "is-out" : "";
+                } else {
+                    state = "is-dim";
+                }
             } else if (focused_space) {
                 if (kind === "node") state = a.id === focused_space ? "is-out" : "is-dim";
                 else state = a.id === focused_space || b.id === focused_space ? "is-out" : "is-dim";
@@ -111,9 +124,32 @@ function createNetwork(map, spaces, data, handlers) {
         });
     }
 
-    function hoverPair(target, a, b) {
-        target.on("mouseover", () => { focused_pair = new Set([a.id, b.id]); applyFocus(); });
-        target.on("mouseout", () => { focused_pair = null; applyFocus(); });
+    function wirePairInteraction(target, a, b, group_id, tip, selectable) {
+        const enter = () => { focused_pair = new Set([a.id, b.id]); focused_group = group_id; applyFocus(); };
+        const leave = () => { focused_pair = null; focused_group = null; applyFocus(); };
+        target.on("mouseover", enter);
+        target.on("mouseout", leave);
+        if (selectable) {
+            target.on("click", (e) => {
+                L.DomEvent.stopPropagation(e); // so the map's own click handler doesn't clear it
+                target.getElement()?.blur(); // the glow marks the selection, not the browser's focus box
+                handlers.onPairClick(a, b, group_id);
+            });
+        }
+        const path = target.getElement();
+        if (path && selectable) {
+            path.setAttribute("tabindex", "0");
+            path.setAttribute("role", "button");
+            path.setAttribute("aria-label", tip);
+            path.addEventListener("focus", () => { enter(); target.openTooltip(); });
+            path.addEventListener("blur", () => { leave(); target.closeTooltip(); });
+            path.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handlers.onPairClick(a, b, group_id);
+                }
+            });
+        }
     }
 
     // Point at t on the quadratic curve p0 -> p2 with control point c, in layer pixels
@@ -142,71 +178,136 @@ function createNetwork(map, spaces, data, handlers) {
 
     const toLatLngs = (pts) => pts.map((p) => map.layerPointToLatLng(p));
 
+    function linkTip(l, group_id) {
+        const label = (data.groups.find((g) => g.id === group_id)?.label || "species").toLowerCase();
+        const unit = typeof groupUnit === "function" ? groupUnit(group_id, l.shared) : label;
+        if (l.similarity === null) return `${l.a.title} ↔ ${l.b.title}: too few ${label} records to compare yet`;
+        if (l.thin) return `${l.a.title} ↔ ${l.b.title}: ${l.shared} shared ${unit}, from few records`;
+        if (l.shared === 0) return `${l.a.title} ↔ ${l.b.title}: no shared ${label} recorded yet`;
+        return `${l.a.title} ↔ ${l.b.title}: ${l.shared} shared ${unit} · ${Math.round(l.similarity * 100)}% alike`;
+    }
+
+    function addStrand(line, l, group_id, weight, opacity, tip) {
+        const cls = `net-link${l.gap ? " is-gap" : ""}${l.thin && l.shared > 0 ? " is-thin" : ""}${l.selectable ? "" : " is-unselectable"} net-${group_id}`;
+        const link = L.polyline(toLatLngs(line), { className: cls, weight, interactive: true })
+            .bindTooltip(tip, { sticky: true, className: "net-tooltip" })
+            .addTo(layer);
+        if (opacity !== null) link.getElement()?.style.setProperty("--link-opacity", opacity.toFixed(2));
+        wirePairInteraction(link, l.a, l.b, group_id, tip, l.selectable);
+        items.push({ el: link, a: l.a, b: l.b, kind: "link", group: group_id });
+
+        // Layered feathered light sweep on solid links while hovered or selected (gradual longitudinal fade, crisp edges)
+        if (!l.gap) {
+            const latlngs = toLatLngs(line);
+            [
+                ["outer", Math.max(1.4, weight * 0.54)],
+                ["mid", Math.max(1.3, weight * 0.48)],
+                ["inner", Math.max(1.2, weight * 0.42)],
+                ["core", Math.max(1.0, weight * 0.36)],
+            ].forEach(([tier, w]) => {
+                const sweep = L.polyline(latlngs, {
+                    className: `net-sweep net-sweep-${tier} net-${group_id}`,
+                    weight: w,
+                    interactive: false,
+                }).addTo(layer);
+                sweep.getElement()?.setAttribute("pathLength", "100");
+                items.push({ el: sweep, a: l.a, b: l.b, kind: "link", group: group_id });
+            });
+        }
+    }
+
     function draw() {
         layer.clearLayers();
         items = [];
-        if (!group) return;
-        const counts = spaces.map((spc) => (data.by_space[spc.id]?.[group] || []).length);
-        const max = Math.max(1, ...counts);
-        const label = (data.groups.find((g) => g.id === group)?.label || "species").toLowerCase();
+        if (active_groups.length === 0) return;
+        const multi = active_groups.length > 1;
+        const min_w = multi ? MULTI_MIN_WEIGHT : LINK_MIN_WEIGHT;
+        const max_w = multi ? MULTI_MAX_WEIGHT : LINK_MAX_WEIGHT;
 
-        const links = corridorLinks(spaces, data, group);
-        const scale = linkScale(links);
-        links.forEach(({ a, b, shared, similarity, thin, gap, selectable }) => {
+        const links_by_group = {};
+        const scale_by_group = {};
+        const pair_map = new Map();
+        active_groups.forEach((g) => {
+            const links = corridorLinks(spaces, data, g);
+            links_by_group[g] = links;
+            // In multi-group mode use one shared similarity scale across all taxa so strands compare honestly
+            scale_by_group[g] = multi
+                ? linkScale(links, min_w, max_w, MULTI_SIM_LO, MULTI_SIM_HI)
+                : linkScale(links, min_w, max_w);
+            links.forEach((l) => {
+                const key = l.a.id + "|" + l.b.id;
+                if (!pair_map.has(key)) pair_map.set(key, { a: l.a, b: l.b, by_group: {} });
+                pair_map.get(key).by_group[g] = l;
+            });
+        });
+
+        pair_map.forEach(({ a, b, by_group }) => {
             const pa = map.latLngToLayerPoint(a.location), pb = map.latLngToLayerPoint(b.location);
             const c = controlPoint(pa, pb);
             const t0 = Math.min(0.4, HALO_MIN_RADIUS / (pa.distanceTo(pb) || 1));
-            const line = curveLine(pa, c, pb, t0, 1 - t0);
 
-            let tip, weight;
-            if (similarity === null) {
-                tip = `${a.title} ↔ ${b.title}: too few observations to compare yet`;
-                weight = 1.5;
-            } else if (thin) {
-                tip = `${a.title} ↔ ${b.title}: ${shared} shared ${label}, from few records`;
-                weight = shared === 0 ? 1.5 : LINK_MIN_WEIGHT; // tentative: no width claim from a handful of records
-            } else if (shared === 0) {
-                tip = `${a.title} ↔ ${b.title}: no shared ${label} recorded yet`;
-                weight = 1.5;
-            } else {
-                tip = `${a.title} ↔ ${b.title}: ${shared} shared ${label} · ${Math.round(similarity * 100)}% alike`;
-                weight = scale.weight(similarity);
+            if (!multi) {
+                const g = active_groups[0];
+                const l = by_group[g];
+                const weight = l.similarity === null || l.shared === 0 ? 1.5
+                    : l.thin ? min_w
+                    : scale_by_group[g].weight(l.similarity);
+                const opacity = l.gap ? null : scale_by_group[g].opacity(l.similarity);
+                const line = curveLine(pa, c, pb, t0, 1 - t0, 0);
+                addStrand(line, l, g, weight, opacity, linkTip(l, g));
+                return;
             }
-            const cls = `net-link${gap ? " is-gap" : ""}${thin && shared > 0 ? " is-thin" : ""}${selectable ? "" : " is-unselectable"} net-${group}`;
-            const link = L.polyline(toLatLngs(line), { className: cls, weight, interactive: true })
-                .bindTooltip(tip, { sticky: true, className: "net-tooltip" })
-                .addTo(layer);
-            if (selectable) {
-                link.on("click", (e) => {
-                    L.DomEvent.stopPropagation(e); // so the map's own click handler doesn't clear it
-                    link.getElement()?.blur(); // the glow marks the selection, not the browser's focus box
-                    handlers.onPairClick(a, b, group);
-                });
-            }
-            hoverPair(link, a, b);
-            items.push({ el: link, a, b, kind: "link" });
 
-            // Dots in both directions, on either side of the line; shown only while the link is
-            // hovered or selected (css), so the resting map doesn't read as traffic
-            if (!gap) {
-                [[pa, pb, 1], [pb, pa, -1]].forEach(([from, to, side]) => {
-                    const flow = curveLine(from, c, to, t0, 1 - t0, (side * -weight) / 4);
-                    const dots = L.polyline(toLatLngs(flow), { className: `net-flow net-${group}`, weight: 2.5, interactive: false }).addTo(layer);
-                    items.push({ el: dots, a, b, kind: "link" });
-                });
+            // Multi-group mode: draw every active group that shares species as parallel ribbons
+            const strands = active_groups
+                .map((g) => ({ g, l: by_group[g] }))
+                .filter(({ l }) => l && l.shared > 0)
+                .map(({ g, l }) => ({
+                    g,
+                    l,
+                    weight: l.thin ? min_w : scale_by_group[g].weight(l.similarity),
+                    opacity: l.gap ? null : scale_by_group[g].opacity(l.similarity),
+                }));
+
+            if (strands.length === 0) {
+                // One shared dashed gap line when none of the active groups share species on this pair
+                const first_selectable = active_groups.find((g) => by_group[g]?.selectable);
+                const any_comparable = active_groups.some((g) => by_group[g]?.similarity !== null);
+                const tip = `${a.title} ↔ ${b.title}: ${any_comparable ? "no shared species recorded yet" : "too few observations to compare yet"}`;
+                const line = curveLine(pa, c, pb, t0, 1 - t0, 0);
+                const cls = `net-link is-gap${first_selectable ? "" : " is-unselectable"}`;
+                const link = L.polyline(toLatLngs(line), { className: cls, weight: 1.5, interactive: true })
+                    .bindTooltip(tip, { sticky: true, className: "net-tooltip" })
+                    .addTo(layer);
+                wirePairInteraction(link, a, b, first_selectable || active_groups[0], tip, Boolean(first_selectable));
+                items.push({ el: link, a, b, kind: "link", group: null });
+                return;
             }
+
+            const total_w = strands.reduce((sum, st) => sum + st.weight, 0) + STRAND_GAP * (strands.length - 1);
+            let cursor = -total_w / 2;
+            strands.forEach(({ g, l, weight, opacity }) => {
+                const offset = cursor + weight / 2;
+                cursor += weight + STRAND_GAP;
+                const line = curveLine(pa, c, pb, t0, 1 - t0, offset);
+                addStrand(line, l, g, weight, opacity, linkTip(l, g));
+            });
         });
 
-        // Halos: size = native species seen; dashed = few observations of this group so far
+        // Halos: size = native species seen across active groups; dashed = few observations so far
+        const counts = spaces.map((spc) => active_groups.reduce((sum, g) => sum + (data.by_space[spc.id]?.[g] || []).length, 0));
+        const max = Math.max(1, ...counts);
         spaces.forEach((spc, i) => {
             const n = counts[i];
             const radius = n === 0 ? HALO_MIN_RADIUS : HALO_MIN_RADIUS + Math.sqrt(n / max) * (HALO_MAX_RADIUS - HALO_MIN_RADIUS);
+            const all_low = active_groups.every((g) => spaceEffort(data, spc.id, g).low);
+            const group_cls = multi ? "is-multi" : `net-${active_groups[0]}`;
             const halo = L.circleMarker(spc.location, {
                 radius,
-                className: `net-node net-${group}` + (spaceEffort(data, spc.id, group).low ? " needs-data" : "") + (n === 0 ? " is-empty" : ""),
+                className: `net-node ${group_cls}` + (all_low ? " needs-data" : "") + (n === 0 ? " is-empty" : ""),
                 interactive: false,
             }).addTo(layer);
-            items.push({ el: halo, a: spc, b: spc, kind: "node" });
+            items.push({ el: halo, a: spc, b: spc, kind: "node", group: null });
         });
         applyFocus();
     }
@@ -215,15 +316,16 @@ function createNetwork(map, spaces, data, handlers) {
     map.on("zoomend viewreset", draw);
 
     return {
-        show(group_id) {
-            if (group !== group_id) {
-                group = group_id;
+        show(groups) {
+            const next = Array.isArray(groups) ? groups : [groups];
+            if (active_groups.join("+") !== next.join("+")) {
+                active_groups = [...next];
                 layer.addTo(map);
                 draw();
             }
         },
         hide() {
-            group = null;
+            active_groups = [];
             items = [];
             layer.clearLayers();
             layer.remove();
