@@ -472,7 +472,7 @@ window.FEATURED_SPECIES = {
     "name": "Juncus torreyi",
     "common_name": "Torrey's rush",
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/431958263/square.jpg",
-    "attribution": "(c) Ed Zaborski, \uc77c\ubd80 \uad8c\ub9ac \ubcf4\uc720 (CC BY-NC), uploaded by Ed Zaborski",
+    "attribution": "(c) Ed Zaborski, some rights reserved (CC BY-NC), uploaded by Ed Zaborski",
     "count": 1,
     "ebird_count": 0,
     "ebird_only": false,
