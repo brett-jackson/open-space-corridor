@@ -19,11 +19,13 @@ function spaceHref(spc) {
 // The space's area as an inaturalist.org query string: its place, or its bounding box (the
 // site can't apply `exclude` boxes, so links for those spaces include the excluded corner)
 function spaceAreaQuery(spc) {
-    if (!spc.bbox) return "place_id=" + encodeURIComponent(spc.place_id);
+    const open = { geoprivacy: "open", taxon_geoprivacy: "open" };
+    if (!spc.bbox) return new URLSearchParams({ place_id: spc.place_id, ...open }).toString();
     const [[lat1, lng1], [lat2, lng2]] = spc.bbox;
     return new URLSearchParams({
         nelat: Math.max(lat1, lat2), nelng: Math.max(lng1, lng2),
         swlat: Math.min(lat1, lat2), swlng: Math.min(lng1, lng2),
+        ...open,
     }).toString();
 }
 

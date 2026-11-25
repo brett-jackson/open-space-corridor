@@ -18,6 +18,8 @@ function boxParams(corners) {
 }
 
 const AREA_PARAMS = SPACE.bbox ? boxParams(SPACE.bbox) : { "place_id" : SPACE.place_id };
+// Exclude user- and taxon-obscured records (randomized across a ~375 km² cell, larger than our spaces)
+const OPEN_COORDS = { "geoprivacy" : "open", "taxon_geoprivacy" : "open" };
 const AREA_EXCLUDE = (SPACE.exclude || []).map(boxParams);
 // Identifies the area, so a trends cache built for a different area is ignored
 const AREA_KEY = JSON.stringify({ area: AREA_PARAMS, exclude: AREA_EXCLUDE });
@@ -27,7 +29,7 @@ const AREA_KEY = JSON.stringify({ area: AREA_PARAMS, exclude: AREA_EXCLUDE });
 const SPACE_CACHE = typeof TRENDS_CACHE !== "undefined" && TRENDS_CACHE.area_key === AREA_KEY ? TRENDS_CACHE : null;
 
 // The same area as an inaturalist.org/observations query string, for links out
-const AREA_QUERY = Object.entries(AREA_PARAMS).map(([k, v]) => k + "=" + encodeURIComponent(v)).join("&");
+const AREA_QUERY = Object.entries({ ...AREA_PARAMS, ...OPEN_COORDS }).map(([k, v]) => k + "=" + encodeURIComponent(v)).join("&");
 
 function isExcluded(obs) {
     const coords = obs.geojson?.coordinates;
@@ -59,7 +61,7 @@ function allAreaObservations() {
             const kept = [];
             for (let page = 1; ; page++) {
                 const json_obj = await inat_request("observations", AREA_OBS_FIELDS, {
-                    ...AREA_PARAMS, "verifiable" : true, "order_by" : "id", "order" : "asc",
+                    ...AREA_PARAMS, ...OPEN_COORDS, "verifiable" : true, "order_by" : "id", "order" : "asc",
                     "per_page" : AREA_OBS_PER_PAGE, "page" : page,
                 });
                 if (!json_obj) return null;

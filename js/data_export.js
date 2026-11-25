@@ -69,7 +69,7 @@ async function exportPage(id_above) {
     const url = new URL("observations", base_url);
     url.searchParams.append("fields", encode_rison(EXPORT_FIELDS));
     Object.entries({
-        ...AREA_PARAMS, "verifiable" : true, "order_by" : "id", "order" : "asc",
+        ...AREA_PARAMS, ...OPEN_COORDS, "verifiable" : true, "order_by" : "id", "order" : "asc",
         "per_page" : EXPORT_PER_PAGE, "id_above" : id_above,
     }).forEach(([key, value]) => url.searchParams.append(key, value));
     await throttle();
@@ -88,8 +88,8 @@ async function exportPage(id_above) {
 
     const lede = document.createElement("p");
     lede.className = "panel-lede";
-    lede.textContent = "Download every verifiable iNaturalist observation from " + SPACE_NAME +
-        " as a spreadsheet (CSV). Coordinates the observer or iNaturalist has obscured stay obscured.";
+    lede.textContent = "Download verifiable iNaturalist observations from " + SPACE_NAME +
+        " as a spreadsheet (CSV). Observations with obscured coordinates are left out.";
 
     const button = document.createElement("button");
     button.type = "button";

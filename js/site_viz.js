@@ -14,6 +14,7 @@ const resp_params = {
 };
 const params = {
     "verifiable" : true,
+    ...OPEN_COORDS,
     "order_by" : "observed_on",
     "order" : "desc",
     ...AREA_PARAMS,

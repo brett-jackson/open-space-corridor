@@ -11,6 +11,7 @@ const observer_fields = {
 };
 const observer_params = {
     "verifiable" : true,
+    ...OPEN_COORDS,
     ...AREA_PARAMS,
     "per_page" : 3,
 };

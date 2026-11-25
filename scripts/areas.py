@@ -28,6 +28,10 @@ CACHE_MINUTES = 30
 OBS_PER_PAGE = 200
 SPECIES_PER_PAGE = 500
 REFERENCE_PLACE = 34  # Colorado: where establishment means (native vs. introduced) are judged
+# Exclude user- and taxon-obscured observations (randomized across a 0.2° × 0.2° cell, ~375 km²
+# at Front Range latitudes): iNaturalist already omits them from small place_id queries, but
+# bounding-box queries otherwise pull in obscured points from outside the space.
+OPEN_COORDS = {"geoprivacy": "open", "taxon_geoprivacy": "open"}
 
 _last_request = 0.0
 
@@ -125,7 +129,7 @@ def all_observations(space, user_agent, area=None):
     kept, page = [], 1
     while True:
         data = inat_get(API_V2 + "observations", user_agent, {
-            **(area or area_params(space)), "verifiable": "true", "order_by": "id", "order": "asc",
+            **(area or area_params(space)), **OPEN_COORDS, "verifiable": "true", "order_by": "id", "order": "asc",
             "per_page": OBS_PER_PAGE, "page": page, "fields": fields,
         })
         kept += [obs for obs in data["results"] if not is_excluded(obs, boxes)]
@@ -136,11 +140,11 @@ def all_observations(space, user_agent, area=None):
 
 def species_counts(area, user_agent):
     """taxon id -> (observation count, taxon) for every species-level (or finer) taxon in the
-    area, from verifiable observations. Taxa include ancestor_ids, so callers can group them."""
+    area, from verifiable observations with open coordinates. Taxa include ancestor_ids, so callers can group them."""
     counts, page = {}, 1
     while True:
         data = inat_get(API_V1 + "observations/species_counts", user_agent,
-                        {**area, "verifiable": "true", "per_page": SPECIES_PER_PAGE, "page": page})
+                        {**area, **OPEN_COORDS, "verifiable": "true", "per_page": SPECIES_PER_PAGE, "page": page})
         for r in data["results"]:
             if r["taxon"].get("rank_level", 100) <= 10:  # species and finer
                 counts[r["taxon"]["id"]] = (r["count"], r["taxon"])
@@ -150,8 +154,8 @@ def species_counts(area, user_agent):
 
 
 def count_observations(area, user_agent, **params):
-    """Number of verifiable observations in the area matching params (one request, no paging)."""
-    return inat_get(API_V1 + "observations", user_agent, {**area, "verifiable": "true", "per_page": 0, **params})["total_results"]
+    """Number of verifiable observations with open coordinates in the area matching params (one request, no paging)."""
+    return inat_get(API_V1 + "observations", user_agent, {**area, **OPEN_COORDS, "verifiable": "true", "per_page": 0, **params})["total_results"]
 
 
 def corridor_bbox(spaces):

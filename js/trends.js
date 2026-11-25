@@ -9,6 +9,7 @@
 // and spaces without a cache, compute their months from the area's individual observations.
 const trend_params = {
     "verifiable" : true,
+    ...OPEN_COORDS,
     ...AREA_PARAMS,
 };
 const trend_metrics = {
