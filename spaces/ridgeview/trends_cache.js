@@ -4,8 +4,8 @@ const TRENDS_CACHE = {
   "cumulative": true,
   "interval": "month",
   "latest": {
-    "observations": 345,
-    "observers": 55,
+    "observations": 346,
+    "observers": 56,
     "species": 181
   },
   "observations": {
@@ -402,5 +402,5 @@ const TRENDS_CACHE = {
       }
     ]
   },
-  "updated": "2026-11-22"
+  "updated": "2026-11-26"
 };
