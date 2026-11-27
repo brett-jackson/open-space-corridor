@@ -1,7 +1,7 @@
 name: Update iNaturalist data
 
 # Refreshes the static data files the site serves and commits them when anything changed.
-#   Hourly: trends (when a month has completed), signature species, species network (~40 requests)
+#   Hourly: trends (when a month has completed), signature species, species network, pollinator network (~60 requests)
 #   Daily:  also recomputes every month of the trends, counts the How to Help tasks (~40 more) and
 #           refreshes the eBird records from GBIF (scripts/update_gbif.py, a few hundred GBIF requests)
 #   Manual (Run workflow): everything, including space boundaries, which rarely change
@@ -66,7 +66,6 @@ jobs:
         run: python3 scripts/update_help_tasks.py
 
       - name: Update pollinator network
-        if: env.HOURLY != 'true'
         continue-on-error: true
         run: python3 scripts/update_pollinator_network.py
 

@@ -6,3 +6,6 @@ scripts/__pycache__
 
 # Bioblitz analysis output (contains iNaturalist logins)
 analysis/out/
+
+# Local-only helper tools/pages (never served with the website)
+.local/
