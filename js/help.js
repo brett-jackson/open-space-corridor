@@ -29,6 +29,7 @@
             how: 'Where the plant is visible, open the observation, choose "Add a Field", search for "Nectar / Pollen delivering plant" and enter the plant.',
             link: inat("observations", "taxon_ids=630955,47157&verifiable=true&subview=grid"),
             action: "Browse pollinators",
+            secondary: { href: "pollinators.html#" + encodeURIComponent(SPACE.id), label: "See pollinator network →" },
         },
         {
             count: counts.needs_id,
@@ -109,7 +110,14 @@
         a.href = t.link;
         a.target = "_blank";
         a.rel = "noopener";
-        card.append(figure, el("h3", null, t.title), el("p", "help-text", t.text), el("p", "help-how", t.how), a);
+        const actions = el("div", "help-card-actions");
+        actions.appendChild(a);
+        if (t.secondary) {
+            const sec = el("a", "help-secondary", t.secondary.label);
+            sec.href = t.secondary.href;
+            actions.appendChild(sec);
+        }
+        card.append(figure, el("h3", null, t.title), el("p", "help-text", t.text), el("p", "help-how", t.how), actions);
         return card;
     }));
 

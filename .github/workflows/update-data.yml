@@ -65,10 +65,15 @@ jobs:
         continue-on-error: true
         run: python3 scripts/update_help_tasks.py
 
+      - name: Update pollinator network
+        if: env.HOURLY != 'true'
+        continue-on-error: true
+        run: python3 scripts/update_pollinator_network.py
+
       - name: Commit changes
         if: always()
         run: |
-          git add js/boundaries.js js/featured_species.js js/species_network.js js/help_tasks.js spaces/*/trends_cache.js
+          git add js/boundaries.js js/featured_species.js js/species_network.js js/help_tasks.js js/pollinator_network.js spaces/*/trends_cache.js
           if [ -f data/gbif_records.json ]; then git add data/gbif_records.json; fi
           if git diff --cached --quiet; then
             echo "No data changes."

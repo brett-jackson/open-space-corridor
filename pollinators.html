@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pollinator Interactions · Open Space Corridors</title>
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="apple-touch-icon" href="images/favicon.png">
+  <meta name="description" content="Insects observed visiting flowers across Broomfield and Westminster open spaces and across Colorado, from annotated iNaturalist observations.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&display=swap">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <main class="poll-page" id="poll-page" data-local-label="Open spaces">
+    <header class="poll-header">
+      <a class="back" href="index.html">&larr; All open spaces</a>
+      <h1>Pollinator Interactions</h1>
+      <p class="landing-intro">Insects observed visiting flowers in Broomfield and Westminster open spaces and across Colorado. Connections thicken as more observations are annotated on iNaturalist.</p>
+    </header>
+    <div class="poll-body">
+      <section class="poll-card" aria-label="Pollinator interaction network">
+        <div class="poll-scope-bar">
+          <div class="segmented" id="poll-scope-tabs" role="tablist" aria-label="Interaction scope">
+            <button type="button" role="tab" data-scope="spaces" aria-selected="true">Open spaces</button>
+            <button type="button" role="tab" data-scope="colorado" aria-selected="false">All Colorado</button>
+          </div>
+          <div class="poll-scope-right">
+            <div class="segmented poll-view-toggle" id="poll-view-toggle" role="group" aria-label="Graph layout">
+              <button type="button" data-view="columns" aria-pressed="true">Columns</button>
+              <button type="button" data-view="network" aria-pressed="false">Network</button>
+            </div>
+            <label class="poll-search-wrap" id="poll-search-wrap">
+              <span class="sr-only">Search insects or flowers</span>
+              <input type="search" class="poll-search" id="poll-search" placeholder="Search insect or flower…">
+            </label>
+          </div>
+        </div>
+        <div class="poll-controls" id="poll-controls">
+          <div class="group-toggles" id="poll-groups" role="group" aria-label="Filter insect groups"></div>
+          <div class="poll-right-controls">
+            <label class="poll-space-wrap" id="poll-space-wrap">
+              <span class="sr-only">Filter by open space</span>
+              <select class="poll-space-select" id="poll-space"></select>
+            </label>
+            <button type="button" class="poll-filter-chip" id="poll-local-only" aria-pressed="false" hidden>Species in our spaces</button>
+            <div class="segmented poll-min-obs" id="poll-min-obs" role="group" aria-label="Minimum observations per link" hidden>
+              <button type="button" data-min="3" aria-pressed="true">3+</button>
+              <button type="button" data-min="2" aria-pressed="false">2+</button>
+              <button type="button" data-min="1" aria-pressed="false">All</button>
+            </div>
+          </div>
+        </div>
+        <p class="poll-scope-note" id="poll-scope-note" hidden></p>
+        <div class="poll-stage" id="poll-stage"></div>
+        <div class="poll-legend" id="poll-legend"></div>
+      </section>
+      <aside class="space-panel poll-panel" id="poll-panel" aria-label="Interaction details">
+        <div class="panel-content" id="poll-panel-content"></div>
+      </aside>
+    </div>
+    <footer class="credits" id="credits"></footer>
+  </main>
+  <script src="js/spaces.js"></script>
+  <script src="js/names.js"></script>
+  <script src="js/species_network.js"></script>
+  <script src="js/network.js"></script>
+  <script src="js/panels.js"></script>
+  <script src="js/pollinator_network.js"></script>
+  <script src="js/pollinators.js"></script>
+</body>
+</html>
