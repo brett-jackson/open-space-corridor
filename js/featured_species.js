@@ -10,12 +10,12 @@ window.FEATURED_SPECIES = {
     "common_name": "Golden Sweat Bee",
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/239334744/square.jpg",
     "attribution": "(c) Thilina Hettiarachchi, some rights reserved (CC BY-NC), uploaded by Thilina Hettiarachchi",
-    "count": 14,
+    "count": 13,
     "ebird_count": 0,
     "ebird_only": false,
     "research_grade": 2,
     "spaces": 1,
-    "score": 0.064121
+    "score": 0.060184
    },
    {
     "taxon_id": 52378,
@@ -28,7 +28,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 10,
     "spaces": 1,
-    "score": 0.046692
+    "score": 0.048306
    },
    {
     "taxon_id": 130192,
@@ -41,7 +41,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 2,
     "spaces": 1,
-    "score": 0.030415
+    "score": 0.031502
    },
    {
     "taxon_id": 54781,
@@ -54,20 +54,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 0,
     "spaces": 1,
-    "score": 0.025313
-   },
-   {
-    "taxon_id": 63337,
-    "name": "Phalaris arundinacea",
-    "common_name": "reed canary grass",
-    "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/78038371/square.jpg",
-    "attribution": "(c) annk, some rights reserved (CC BY-NC)",
-    "count": 11,
-    "ebird_count": 0,
-    "ebird_only": false,
-    "research_grade": 2,
-    "spaces": 2,
-    "score": 0.024704
+    "score": 0.026232
    },
    {
     "taxon_id": 126889,
@@ -80,7 +67,20 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 11,
     "spaces": 2,
-    "score": 0.024704
+    "score": 0.02563
+   },
+   {
+    "taxon_id": 63337,
+    "name": "Phalaris arundinacea",
+    "common_name": "reed canary grass",
+    "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/78038371/square.jpg",
+    "attribution": "(c) annk, some rights reserved (CC BY-NC)",
+    "count": 10,
+    "ebird_count": 0,
+    "ebird_only": false,
+    "research_grade": 2,
+    "spaces": 2,
+    "score": 0.022371
    },
    {
     "taxon_id": 54835,
@@ -88,12 +88,12 @@ window.FEATURED_SPECIES = {
     "common_name": "chokecherry",
     "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/146282563/square.jpg",
     "attribution": "(c) Dan Mullen, some rights reserved (CC BY-NC-ND)",
-    "count": 15,
+    "count": 16,
     "ebird_count": 0,
     "ebird_only": false,
-    "research_grade": 8,
+    "research_grade": 9,
     "spaces": 3,
-    "score": 0.020611
+    "score": 0.021057
    },
    {
     "taxon_id": 6915,
@@ -119,20 +119,20 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 5,
     "spaces": 1,
-    "score": 0.015741
+    "score": 0.01634
    },
    {
-    "taxon_id": 60313,
-    "name": "Sporobolus airoides",
-    "common_name": "Alkali Sacaton",
-    "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/12197757/square.jpeg",
-    "attribution": "(c) lonnyholmes, some rights reserved (CC BY-NC), uploaded by lonnyholmes",
-    "count": 5,
+    "taxon_id": 57934,
+    "name": "Ericameria nauseosa",
+    "common_name": "Rubber Rabbitbrush",
+    "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/317214763/square.jpeg",
+    "attribution": "(c) Pete &amp; Gretchen Pederson, some rights reserved (CC BY-NC), uploaded by Pete &amp; Gretchen Pederson",
+    "count": 30,
     "ebird_count": 0,
     "ebird_only": false,
-    "research_grade": 0,
-    "spaces": 1,
-    "score": 0.015741
+    "research_grade": 25,
+    "spaces": 5,
+    "score": 0.015749
    }
   ],
   "metzger": [
@@ -173,7 +173,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 0,
     "spaces": 1,
-    "score": 0.033929
+    "score": 0.033856
    },
    {
     "taxon_id": 53268,
@@ -186,7 +186,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 2,
     "spaces": 1,
-    "score": 0.033929
+    "score": 0.033856
    },
    {
     "taxon_id": 4956,
@@ -199,7 +199,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 47,
     "spaces": 6,
-    "score": 0.032459
+    "score": 0.033173
    },
    {
     "taxon_id": 20044,
@@ -212,7 +212,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 24,
     "spaces": 6,
-    "score": 0.027515
+    "score": 0.027461
    },
    {
     "taxon_id": 169448,
@@ -225,7 +225,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 4,
     "spaces": 2,
-    "score": 0.027088
+    "score": 0.027003
    },
    {
     "taxon_id": 58896,
@@ -238,7 +238,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 16,
     "spaces": 4,
-    "score": 0.024475
+    "score": 0.024398
    },
    {
     "taxon_id": 158286,
@@ -251,7 +251,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 0,
     "spaces": 1,
-    "score": 0.019474
+    "score": 0.019425
    },
    {
     "taxon_id": 4940,
@@ -264,7 +264,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 18,
     "spaces": 6,
-    "score": 0.018783
+    "score": 0.018743
    }
   ],
   "plaster-reservoir": [
@@ -279,7 +279,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 14,
     "spaces": 5,
-    "score": 0.088251
+    "score": 0.084692
    },
    {
     "taxon_id": 58211,
@@ -292,20 +292,20 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 1,
-    "score": 0.069949
+    "score": 0.066928
    },
    {
-    "taxon_id": 7056,
-    "name": "Aythya americana",
-    "common_name": "Redhead",
-    "photo": "https://static.inaturalist.org/photos/31458727/square.jpg",
-    "attribution": "(c) elizlooks, all rights reserved",
-    "count": 1400,
-    "ebird_count": 1390,
+    "taxon_id": 75858,
+    "name": "Bouteloua curtipendula",
+    "common_name": "sideoats grama",
+    "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/5329132/square.jpeg",
+    "attribution": "(c) psweet, some rights reserved (CC BY-SA), uploaded by psweet",
+    "count": 4,
+    "ebird_count": 0,
     "ebird_only": false,
-    "research_grade": 10,
-    "spaces": 6,
-    "score": 0.030638
+    "research_grade": 4,
+    "spaces": 2,
+    "score": 0.027993
    },
    {
     "taxon_id": 4571,
@@ -318,7 +318,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 2,
     "spaces": 1,
-    "score": 0.028251
+    "score": 0.026956
    },
    {
     "taxon_id": 1721810,
@@ -331,7 +331,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 2,
     "spaces": 1,
-    "score": 0.028251
+    "score": 0.026956
    },
    {
     "taxon_id": 78903,
@@ -344,20 +344,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 1,
-    "score": 0.028251
-   },
-   {
-    "taxon_id": 122608,
-    "name": "Sorghastrum nutans",
-    "common_name": "Indiangrass",
-    "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/4699574/square.jpg",
-    "attribution": "(c) Erica Fraley, some rights reserved (CC BY-NC), uploaded by Erica Fraley",
-    "count": 2,
-    "ebird_count": 0,
-    "ebird_only": false,
-    "research_grade": 2,
-    "spaces": 1,
-    "score": 0.028251
+    "score": 0.026956
    },
    {
     "taxon_id": 7044,
@@ -370,7 +357,20 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 10,
     "spaces": 5,
-    "score": 0.027557
+    "score": 0.026152
+   },
+   {
+    "taxon_id": 7056,
+    "name": "Aythya americana",
+    "common_name": "Redhead",
+    "photo": "https://static.inaturalist.org/photos/31458727/square.jpg",
+    "attribution": "(c) elizlooks, all rights reserved",
+    "count": 1399,
+    "ebird_count": 1390,
+    "ebird_only": false,
+    "research_grade": 9,
+    "spaces": 6,
+    "score": 0.025546
    },
    {
     "taxon_id": 6993,
@@ -383,7 +383,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 8,
     "spaces": 6,
-    "score": 0.025816
+    "score": 0.024701
    },
    {
     "taxon_id": 243,
@@ -411,7 +411,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 1,
-    "score": 1.745963
+    "score": 1.74465
    },
    {
     "taxon_id": 78084,
@@ -424,7 +424,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 2,
-    "score": 1.064854
+    "score": 1.063956
    },
    {
     "taxon_id": 63886,
@@ -437,7 +437,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 2,
-    "score": 1.064854
+    "score": 1.063956
    }
   ],
   "wottge": [
@@ -452,7 +452,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 2,
     "spaces": 1,
-    "score": 5.374586
+    "score": 5.371085
    },
    {
     "taxon_id": 216868,
@@ -465,7 +465,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 1,
-    "score": 2.43346
+    "score": 2.431709
    },
    {
     "taxon_id": 77596,
@@ -478,7 +478,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 1,
-    "score": 2.43346
+    "score": 2.431709
    },
    {
     "taxon_id": 229683,
@@ -491,7 +491,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 3,
-    "score": 0.962896
+    "score": 0.962021
    }
   ],
   "the-field": [
@@ -506,7 +506,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 4,
     "spaces": 2,
-    "score": 0.040098
+    "score": 0.039923
    },
    {
     "taxon_id": 154298,
@@ -519,7 +519,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 4,
     "spaces": 2,
-    "score": 0.038533
+    "score": 0.038319
    },
    {
     "taxon_id": 59504,
@@ -532,7 +532,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 1,
-    "score": 0.03734
+    "score": 0.037182
    },
    {
     "taxon_id": 174272,
@@ -545,7 +545,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 5,
     "spaces": 2,
-    "score": 0.036031
+    "score": 0.035842
    },
    {
     "taxon_id": 53843,
@@ -558,7 +558,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 4,
     "spaces": 2,
-    "score": 0.029629
+    "score": 0.029493
    },
    {
     "taxon_id": 1511599,
@@ -571,7 +571,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 4,
     "spaces": 2,
-    "score": 0.029629
+    "score": 0.029493
    },
    {
     "taxon_id": 133141,
@@ -584,7 +584,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 3,
     "spaces": 2,
-    "score": 0.029629
+    "score": 0.029493
    },
    {
     "taxon_id": 48987,
@@ -597,7 +597,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 11,
     "spaces": 4,
-    "score": 0.022916
+    "score": 0.024464
    },
    {
     "taxon_id": 272457,
@@ -610,7 +610,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 2,
     "spaces": 1,
-    "score": 0.021642
+    "score": 0.021542
    },
    {
     "taxon_id": 558400,
@@ -623,7 +623,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 2,
     "spaces": 1,
-    "score": 0.021642
+    "score": 0.021542
    }
   ],
   "mckay-lake": [
@@ -638,7 +638,20 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 3,
     "spaces": 1,
-    "score": 0.127254
+    "score": 0.127097
+   },
+   {
+    "taxon_id": 29044,
+    "name": "Pituophis catenifer",
+    "common_name": "Gopher Snake",
+    "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/389786008/square.jpeg",
+    "attribution": "(c) Yinan Li, some rights reserved (CC BY-NC), uploaded by Yinan Li",
+    "count": 10,
+    "ebird_count": 0,
+    "ebird_only": false,
+    "research_grade": 10,
+    "spaces": 5,
+    "score": 0.056308
    },
    {
     "taxon_id": 64989,
@@ -651,7 +664,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 3,
     "spaces": 2,
-    "score": 0.049749
+    "score": 0.049668
    },
    {
     "taxon_id": 49348,
@@ -664,7 +677,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 3,
     "spaces": 2,
-    "score": 0.049749
+    "score": 0.049668
    },
    {
     "taxon_id": 28398,
@@ -677,20 +690,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 4,
     "spaces": 3,
-    "score": 0.042176
-   },
-   {
-    "taxon_id": 29044,
-    "name": "Pituophis catenifer",
-    "common_name": "Gopher Snake",
-    "photo": "https://inaturalist-open-data.s3.amazonaws.com/photos/389786008/square.jpeg",
-    "attribution": "(c) Yinan Li, some rights reserved (CC BY-NC), uploaded by Yinan Li",
-    "count": 10,
-    "ebird_count": 0,
-    "ebird_only": false,
-    "research_grade": 10,
-    "spaces": 6,
-    "score": 0.036312
+    "score": 0.042098
    },
    {
     "taxon_id": 4793,
@@ -703,7 +703,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 12,
     "spaces": 7,
-    "score": 0.036305
+    "score": 0.036251
    },
    {
     "taxon_id": 57356,
@@ -716,7 +716,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 2,
-    "score": 0.028871
+    "score": 0.028817
    },
    {
     "taxon_id": 77183,
@@ -729,7 +729,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 1,
-    "score": 0.021088
+    "score": 0.021049
    },
    {
     "taxon_id": 47963,
@@ -742,7 +742,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 1,
-    "score": 0.021088
+    "score": 0.021049
    },
    {
     "taxon_id": 68263,
@@ -755,7 +755,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 1,
-    "score": 0.021088
+    "score": 0.021049
    }
   ],
   "lac-amora": [
@@ -770,7 +770,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 3,
     "spaces": 1,
-    "score": 0.078674
+    "score": 0.078566
    },
    {
     "taxon_id": 51082,
@@ -783,7 +783,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 3,
     "spaces": 1,
-    "score": 0.078674
+    "score": 0.078566
    },
    {
     "taxon_id": 130379,
@@ -796,7 +796,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 6,
     "spaces": 3,
-    "score": 0.078501
+    "score": 0.078375
    },
    {
     "taxon_id": 121785,
@@ -809,7 +809,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 5,
     "spaces": 2,
-    "score": 0.068657
+    "score": 0.068533
    },
    {
     "taxon_id": 60541,
@@ -822,7 +822,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 8,
     "spaces": 3,
-    "score": 0.051108
+    "score": 0.050964
    },
    {
     "taxon_id": 165591,
@@ -835,7 +835,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 2,
-    "score": 0.050622
+    "score": 0.050524
    },
    {
     "taxon_id": 232779,
@@ -848,7 +848,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 1,
-    "score": 0.046739
+    "score": 0.046666
    },
    {
     "taxon_id": 165891,
@@ -861,7 +861,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 2,
-    "score": 0.043831
+    "score": 0.043757
    },
    {
     "taxon_id": 79495,
@@ -874,7 +874,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 6,
     "spaces": 4,
-    "score": 0.043191
+    "score": 0.043098
    },
    {
     "taxon_id": 53320,
@@ -887,7 +887,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 4,
     "spaces": 3,
-    "score": 0.036976
+    "score": 0.036904
    }
   ],
   "ridgeview": [
@@ -902,7 +902,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 8,
     "spaces": 1,
-    "score": 0.283904
+    "score": 0.2836
    },
    {
     "taxon_id": 52113,
@@ -915,7 +915,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 6,
     "spaces": 1,
-    "score": 0.200072
+    "score": 0.199844
    },
    {
     "taxon_id": 60541,
@@ -928,7 +928,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 16,
     "spaces": 3,
-    "score": 0.188005
+    "score": 0.187701
    },
    {
     "taxon_id": 163628,
@@ -941,7 +941,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 2,
-    "score": 0.149532
+    "score": 0.149324
    },
    {
     "taxon_id": 158843,
@@ -954,7 +954,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 5,
     "spaces": 2,
-    "score": 0.094548
+    "score": 0.094392
    },
    {
     "taxon_id": 164743,
@@ -967,7 +967,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 2,
     "spaces": 1,
-    "score": 0.084548
+    "score": 0.084434
    },
    {
     "taxon_id": 165786,
@@ -980,7 +980,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 1,
     "spaces": 1,
-    "score": 0.084548
+    "score": 0.084434
    },
    {
     "taxon_id": 54048,
@@ -993,7 +993,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 2,
     "spaces": 1,
-    "score": 0.050325
+    "score": 0.050249
    },
    {
     "taxon_id": 132735,
@@ -1006,7 +1006,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 2,
     "spaces": 1,
-    "score": 0.050325
+    "score": 0.050249
    },
    {
     "taxon_id": 326155,
@@ -1019,7 +1019,7 @@ window.FEATURED_SPECIES = {
     "ebird_only": false,
     "research_grade": 3,
     "spaces": 2,
-    "score": 0.047274
+    "score": 0.047196
    }
   ]
  }
